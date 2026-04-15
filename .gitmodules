@@ -1,0 +1,3 @@
+[submodule "scarf"]
+	path = scarf
+	url = https://github.com/cbmi-group/scarf.git
