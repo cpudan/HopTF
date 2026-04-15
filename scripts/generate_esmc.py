@@ -38,6 +38,14 @@ ESMC_MODELS: dict[str, dict[str, Any]] = {
     },
 }
 
+# Example invocation:
+# PYTHONPATH=src:. python -m mantra.embeddings.generate_esmc \
+#   --device cuda \
+#   --vocab-path /tmp/mantra_one_tf_vocab.json \
+#   --sequence-path data/processed/metadata/regulator_sequences.json \
+#   --out-dir /tmp/mantra_esm3_gata1 \
+#   --out-prefix GATA1_esm3
+
 
 class SequenceExtractor(Protocol):
     def embed(self, sequence: str) -> np.ndarray:
