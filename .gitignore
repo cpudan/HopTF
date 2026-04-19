@@ -3,6 +3,7 @@ envs/*/.venv/
 __pycache__/
 .pytest_cache/
 *.pyc
+.ipynb_checkpoints/
 data/raw/
 data/processed/
 data/reference/scarf/model_files.zip

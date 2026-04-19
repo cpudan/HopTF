@@ -132,6 +132,41 @@ The RNA embedding script also needs:
 
 Important caveat: the newer `17205044` `model_files.zip` archive does not include `RNA_nonzero_median_10W.hg38.pickle`, even though the raw-count preprocessing path needs it. The checkpoint smoke test can still run with just the weights, but converting raw counts into SCARF-ready RNA inputs still requires that missing median file from another official source.
 
+## SCARF On Google Colab
+
+This repo now includes a Colab-oriented bootstrap path:
+
+- [`scripts/bootstrap_scarf_colab.sh`](./scripts/bootstrap_scarf_colab.sh) installs Colab-compatible SCARF runtime dependencies and downloads the required model assets.
+- [`notebooks/scarf_scp3357_colab.ipynb`](./notebooks/scarf_scp3357_colab.ipynb) provides an end-to-end notebook that clones the repo, bootstraps SCARF, builds SCP3357 if needed, and runs the RNA encoder on GPU.
+
+The bootstrap script is intended for a Linux x86_64 Colab GPU runtime. It inspects the live Python, torch, CUDA, and CXX ABI configuration, then resolves matching prebuilt `mamba-ssm` and `causal-conv1d` wheels from the GitHub release assets instead of relying on source builds.
+
+Typical Colab setup from the repository root is:
+
+```bash
+bash scripts/bootstrap_scarf_colab.sh
+```
+
+Then run the standard embedding command on a GPU runtime:
+
+```bash
+python scripts/add_scarf_embeddings.py \
+  --input-h5ad /path/to/input.h5ad \
+  --output-h5ad /path/to/output_with_scarf.h5ad \
+  --device cuda
+```
+
+The notebook supports two input paths:
+
+- build a fresh SCP3357 `.h5ad` from a Single Cell Portal bundle stored in Drive or another mounted location
+- start from an existing `.h5ad` that already has `layers["counts"]`
+
+Current Colab caveats:
+
+- Use a GPU runtime. CPU runtimes can load the checkpoint weights, but end-to-end SCARF inference still depends on GPU-oriented Mamba/Triton kernels.
+- The bootstrap script also streams `RNA_nonzero_median_10W.hg38.pickle` from the older `16956913` SCARF Zenodo bundle, because the newer `17205044` bundle does not include it.
+- If Colab changes its base Python or torch runtime and no matching prebuilt wheels are available, the bootstrap script will stop with a clear compatibility error instead of trying to compile the Mamba stack from source.
+
 ## SCARF Tests
 
 Run the dedicated SCARF tests from the repository root:
@@ -152,7 +187,7 @@ uv run --project envs/scarf python scripts/add_scarf_embeddings.py \
   --output-h5ad /path/to/output_with_scarf.h5ad
 ```
 
-By default the script uses `cuda` when PyTorch detects a GPU and falls back to `cpu` otherwise. You can force a specific device with `--device cuda`.
+Set `--device cuda` for real SCARF inference. The script now stops with a clear error on CPU runtimes, because the current upstream Mamba2 forward path still requires CUDA for end-to-end embeddings.
 
 The script expects:
 
