@@ -3,10 +3,13 @@ name = "hoptf"
 version = "0.1.0"
 requires-python = ">=3.11"
 dependencies = [
-    "alphagenome-research @ git+https://github.com/google-deepmind/alphagenome_research.git",
     "pyfaidx",
     "numpy",
-    "torch",
     "scikit-learn",
     "matplotlib",
+    "scarf",
+    "pytest",
 ]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
