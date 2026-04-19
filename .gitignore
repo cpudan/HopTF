@@ -3,3 +3,9 @@ envs/*/.venv/
 __pycache__/
 .pytest_cache/
 *.pyc
+data/raw/
+data/processed/
+data/reference/scarf/model_files.zip
+data/reference/scarf/model_files/
+data/reference/scarf/weights/
+data/reference/scarf/prior_data/
