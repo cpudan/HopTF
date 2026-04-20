@@ -9,4 +9,5 @@ dependencies = [
     "torch",
     "scikit-learn",
     "matplotlib",
+    "huggingface-hub",
 ]

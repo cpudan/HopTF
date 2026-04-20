@@ -752,6 +752,7 @@ version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
     { name = "alphagenome-research" },
+    { name = "huggingface-hub" },
     { name = "matplotlib" },
     { name = "numpy" },
     { name = "pyfaidx" },
@@ -762,6 +763,7 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "alphagenome-research", git = "https://github.com/google-deepmind/alphagenome_research.git" },
+    { name = "huggingface-hub" },
     { name = "matplotlib" },
     { name = "numpy" },
     { name = "pyfaidx" },
