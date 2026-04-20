@@ -132,19 +132,25 @@ The RNA embedding script also needs:
 
 Important caveat: the newer `17205044` `model_files.zip` archive does not include `RNA_nonzero_median_10W.hg38.pickle`, and the older public SCARF bundle may not expose it either. The checkpoint smoke test can still run with just the weights. For end-to-end RNA embeddings, the local script now falls back to deriving per-gene nonzero medians from the input dataset when that official pickle is unavailable.
 
-## SCARF On Google Colab
+## SCARF Bootstrap
 
-This repo now includes a Colab-oriented bootstrap path:
+This repo now includes a general SCARF bootstrap path for Linux x86_64 GPU machines:
 
-- [`scripts/bootstrap_scarf_colab.sh`](./scripts/bootstrap_scarf_colab.sh) installs Colab-compatible SCARF runtime dependencies, downloads the required model assets, and logs each major step with timestamps.
-- [`notebooks/scarf_scp3357_colab.ipynb`](./notebooks/scarf_scp3357_colab.ipynb) provides an end-to-end notebook that clones the repo, bootstraps SCARF, builds SCP3357 if needed, runs the RNA encoder on GPU, and uploads the finished `.h5ad` to Hugging Face.
+- [`scripts/bootstrap_scarf.sh`](./scripts/bootstrap_scarf.sh) installs SCARF runtime dependencies into the active Python environment, downloads the required model assets, and logs each major step with timestamps.
+- [`scripts/bootstrap_scarf_colab.sh`](./scripts/bootstrap_scarf_colab.sh) is a thin Colab-oriented wrapper around the generic bootstrap so the notebook can keep a stable entrypoint.
 
-The bootstrap script is intended for a Linux x86_64 Colab GPU runtime. It inspects the live Python, torch, CUDA, and CXX ABI configuration, then resolves matching prebuilt `mamba-ssm` and `causal-conv1d` wheels from the GitHub release assets instead of relying on source builds.
+The generic bootstrap script inspects the active Python, torch, CUDA, and CXX ABI configuration, then resolves matching prebuilt `mamba-ssm` and `causal-conv1d` wheels from the GitHub release assets instead of relying on source builds. If torch is missing or incompatible with those wheels, it falls back to a known-good `torch==2.6.0` CUDA runtime.
 
-Typical Colab setup from the repository root is:
+Typical setup from the repository root on a Linux GPU machine is:
 
 ```bash
-bash scripts/bootstrap_scarf_colab.sh
+bash scripts/bootstrap_scarf.sh
+```
+
+If you want to install into the dedicated SCARF `uv` environment instead of your shell's default Python, run:
+
+```bash
+uv run --project envs/scarf bash scripts/bootstrap_scarf.sh
 ```
 
 Then run the standard embedding command on a GPU runtime:
@@ -154,6 +160,19 @@ python scripts/add_scarf_embeddings.py \
   --input-h5ad /path/to/input.h5ad \
   --output-h5ad /path/to/output_with_scarf.h5ad \
   --device cuda
+```
+
+## SCARF On Google Colab
+
+This repo still includes a Colab-oriented path for convenience:
+
+- [`scripts/bootstrap_scarf_colab.sh`](./scripts/bootstrap_scarf_colab.sh) delegates to the generic bootstrap script above.
+- [`notebooks/scarf_scp3357_colab.ipynb`](./notebooks/scarf_scp3357_colab.ipynb) provides an end-to-end notebook that clones the repo, bootstraps SCARF, builds SCP3357 if needed, runs the RNA encoder on GPU, and uploads the finished `.h5ad` to Hugging Face.
+
+Typical Colab setup from the repository root is:
+
+```bash
+bash scripts/bootstrap_scarf_colab.sh
 ```
 
 The notebook supports two input paths:
