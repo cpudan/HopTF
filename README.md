@@ -130,14 +130,14 @@ The RNA embedding script also needs:
 - `prior_data/hm_ENSG2token_dict.pickle`
 - `prior_data/RNA_nonzero_median_10W.hg38.pickle`
 
-Important caveat: the newer `17205044` `model_files.zip` archive does not include `RNA_nonzero_median_10W.hg38.pickle`, even though the raw-count preprocessing path needs it. The checkpoint smoke test can still run with just the weights, but converting raw counts into SCARF-ready RNA inputs still requires that missing median file from another official source.
+Important caveat: the newer `17205044` `model_files.zip` archive does not include `RNA_nonzero_median_10W.hg38.pickle`, and the older public SCARF bundle may not expose it either. The checkpoint smoke test can still run with just the weights. For end-to-end RNA embeddings, the local script now falls back to deriving per-gene nonzero medians from the input dataset when that official pickle is unavailable.
 
 ## SCARF On Google Colab
 
 This repo now includes a Colab-oriented bootstrap path:
 
-- [`scripts/bootstrap_scarf_colab.sh`](./scripts/bootstrap_scarf_colab.sh) installs Colab-compatible SCARF runtime dependencies and downloads the required model assets.
-- [`notebooks/scarf_scp3357_colab.ipynb`](./notebooks/scarf_scp3357_colab.ipynb) provides an end-to-end notebook that clones the repo, bootstraps SCARF, builds SCP3357 if needed, and runs the RNA encoder on GPU.
+- [`scripts/bootstrap_scarf_colab.sh`](./scripts/bootstrap_scarf_colab.sh) installs Colab-compatible SCARF runtime dependencies, downloads the required model assets, and logs each major step with timestamps.
+- [`notebooks/scarf_scp3357_colab.ipynb`](./notebooks/scarf_scp3357_colab.ipynb) provides an end-to-end notebook that clones the repo, bootstraps SCARF, builds SCP3357 if needed, runs the RNA encoder on GPU, and uploads the finished `.h5ad` to Hugging Face.
 
 The bootstrap script is intended for a Linux x86_64 Colab GPU runtime. It inspects the live Python, torch, CUDA, and CXX ABI configuration, then resolves matching prebuilt `mamba-ssm` and `causal-conv1d` wheels from the GitHub release assets instead of relying on source builds.
 
@@ -158,13 +158,13 @@ python scripts/add_scarf_embeddings.py \
 
 The notebook supports two input paths:
 
-- build a fresh SCP3357 `.h5ad` from a Single Cell Portal bundle stored in Drive or another mounted location
+- build a fresh SCP3357 `.h5ad` from a Single Cell Portal bundle already available in the Colab runtime
 - start from an existing `.h5ad` that already has `layers["counts"]`
 
 Current Colab caveats:
 
 - Use a GPU runtime. CPU runtimes can load the checkpoint weights, but end-to-end SCARF inference still depends on GPU-oriented Mamba/Triton kernels.
-- The bootstrap script also streams `RNA_nonzero_median_10W.hg38.pickle` from the older `16956913` SCARF Zenodo bundle, because the newer `17205044` bundle does not include it.
+- The bootstrap script tries to recover `RNA_nonzero_median_10W.hg38.pickle` from the older public SCARF bundle, but it will warn and continue if the file is not available. In that case the embedding script derives approximate medians from the input dataset.
 - If Colab changes its base Python or torch runtime and no matching prebuilt wheels are available, the bootstrap script will stop with a clear compatibility error instead of trying to compile the Mamba stack from source.
 
 ## SCARF Tests
@@ -197,6 +197,8 @@ The script expects:
 It writes the embeddings to `adata.obsm["X_scarf"]` by default and stores run metadata in `adata.uns["scarf_embedding"]`.
 
 For SCP3357 specifically, the current conversion keeps gene symbols as `var_names`. The SCARF embedding script backfills `adata.var["gene_ids"]` on the fly, caches the symbol-to-Ensembl mapping in `data/reference/scarf/gene_symbol_to_ensembl.json`, and records per-gene mapping status columns in `adata.var`.
+
+If `RNA_nonzero_median_10W.hg38.pickle` is unavailable, the script derives per-gene nonzero medians from the input counts and records that fallback in `adata.uns["scarf_embedding"]["median_source"]`.
 
 Current runtime caveat: with the upstream SCARF Mamba2 stack and the official checkpoint, end-to-end embedding inference still requires CUDA in this repo. The local test suite validates that the checkpoint weights load on CPU, but the actual forward path depends on GPU-oriented Triton scan kernels.
 

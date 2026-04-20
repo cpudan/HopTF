@@ -20,9 +20,11 @@ Notes:
   - This script is intended for a Colab GPU runtime.
   - It selects matching prebuilt mamba-ssm and causal-conv1d wheels from
     GitHub release assets based on the live Python / torch / CUDA / CXX ABI.
-  - The current SCARF raw-count preprocessing path also needs the legacy
-    RNA_nonzero_median_10W.hg38.pickle file, which is streamed from the older
-    SCARF Zenodo bundle.
+  - The script logs each major step with timestamps so notebook output is
+    easier to monitor.
+  - If the legacy RNA_nonzero_median_10W.hg38.pickle file is unavailable from
+    the public SCARF bundles, the embedding script will derive approximate
+    per-gene medians from the input dataset instead.
 EOF
 }
 
@@ -75,11 +77,30 @@ MODEL_ZIP_URL="https://zenodo.org/api/records/17205044/files/model_files.zip/con
 LEGACY_MODEL_TAR_URL="https://zenodo.org/api/records/16956913/files/model_files.tar.gz/content"
 SUPPORTED_TORCH_VERSION="2.6.0"
 SUPPORTED_TORCH_INDEX_URL="https://download.pytorch.org/whl/cu124"
+STEP_COUNTER=0
+
+timestamp() {
+  date '+%Y-%m-%d %H:%M:%S %Z'
+}
+
+log_info() {
+  echo "[$(timestamp)] $*"
+}
+
+log_step() {
+  STEP_COUNTER=$((STEP_COUNTER + 1))
+  log_info "Step ${STEP_COUNTER}: $*"
+}
+
+log_warn() {
+  echo "[$(timestamp)] WARNING: $*" >&2
+}
 
 mkdir -p "${SCARF_DIR}/weights" "${SCARF_DIR}/prior_data"
+log_info "Using SCARF asset directory: ${SCARF_DIR}"
 
 if [[ "${INSTALL_RUNTIME}" -eq 1 ]]; then
-  echo "Inspecting runtime and selecting Colab-compatible SCARF wheels..."
+  log_step "Inspecting the runtime and selecting Colab-compatible SCARF wheels"
   eval "$(
     python - <<'PY'
 import json
@@ -197,10 +218,10 @@ print(f"CAUSAL_CONV_WHEEL={json.dumps(causal_name)}")
 PY
   )"
 
-  echo "Python runtime: ${PYTHON_VERSION}"
-  echo "Live torch runtime: ${LIVE_TORCH_VERSION} (CUDA ${TORCH_CUDA:-unknown}, cxx11abi=${LIVE_TORCH_CXX11ABI})"
+  log_info "Python runtime: ${PYTHON_VERSION}"
+  log_info "Live torch runtime: ${LIVE_TORCH_VERSION} (CUDA ${TORCH_CUDA:-unknown}, cxx11abi=${LIVE_TORCH_CXX11ABI})"
   if [[ "${RESET_TORCH}" == "1" ]]; then
-    echo "Resetting torch runtime to ${SELECTED_TORCH_VERSION} for SCARF wheel compatibility..."
+    log_step "Resetting torch to ${SELECTED_TORCH_VERSION} for SCARF wheel compatibility"
     python -m pip install --quiet --upgrade pip
     python -m pip install --quiet --force-reinstall \
       --index-url "${SUPPORTED_TORCH_INDEX_URL}" \
@@ -208,11 +229,11 @@ PY
       "torchvision==0.21.0" \
       "torchaudio==2.6.0"
   else
+    log_step "Keeping the existing torch runtime and upgrading pip"
     python -m pip install --quiet --upgrade pip
   fi
-  echo "Selected torch runtime: ${SELECTED_TORCH_VERSION} (cxx11abi=${SELECTED_TORCH_CXX11ABI})"
-  echo "Installing ${CAUSAL_CONV_WHEEL}"
-  echo "Installing ${MAMBA_WHEEL}"
+  log_info "Selected torch runtime: ${SELECTED_TORCH_VERSION} (cxx11abi=${SELECTED_TORCH_CXX11ABI})"
+  log_step "Installing Python dependencies, ${CAUSAL_CONV_WHEEL}, and ${MAMBA_WHEEL}"
 
   python -m pip install --quiet \
     "anndata>=0.9,<0.12" \
@@ -224,15 +245,17 @@ PY
   python -m pip install --quiet "${CAUSAL_CONV_URL}" "${MAMBA_URL}"
 
   if [[ "${GPU_RUNTIME}" != "1" ]]; then
-    echo "WARNING: No CUDA runtime detected. Weight loading should work, but end-to-end SCARF embeddings still need a GPU." >&2
+    log_warn "No CUDA runtime detected. Weight loading should work, but end-to-end SCARF embeddings still need a GPU."
   fi
+else
+  log_info "Skipping Python package installation."
 fi
 
 if [[ "${DOWNLOAD_MODEL}" -eq 1 ]]; then
   if [[ "${FORCE}" -eq 1 ]] || [[ ! -s "${SCARF_DIR}/weights/config.json" ]] || [[ ! -s "${SCARF_DIR}/prior_data/hm_ENSG2token_dict.pickle" ]]; then
-    echo "Downloading SCARF model_files.zip (~6.4 GB)..."
+    log_step "Downloading SCARF model_files.zip (~6.4 GB)"
     wget -c -O "${SCARF_DIR}/model_files.zip" "${MODEL_ZIP_URL}"
-    echo "Extracting SCARF weights and token dictionary..."
+    log_step "Extracting SCARF weights and token dictionary"
     UNZIP_DISABLE_ZIPBOMB_DETECTION=TRUE unzip -q -o \
       "${SCARF_DIR}/model_files.zip" \
       "model_files/weights/*" \
@@ -242,15 +265,17 @@ if [[ "${DOWNLOAD_MODEL}" -eq 1 ]]; then
     cp -f "${SCARF_DIR}/model_files/prior_data/hm_ENSG2token_dict.pickle" "${SCARF_DIR}/prior_data/"
     rm -rf "${SCARF_DIR}/model_files"
   else
-    echo "Skipping SCARF weight download; expected files already exist."
+    log_info "Skipping SCARF weight download; expected files already exist."
   fi
+else
+  log_info "Skipping SCARF weight download by request."
 fi
 
 if [[ "${DOWNLOAD_MEDIAN}" -eq 1 ]]; then
   MEDIAN_TARGET="${SCARF_DIR}/prior_data/RNA_nonzero_median_10W.hg38.pickle"
   if [[ "${FORCE}" -eq 1 ]] || [[ ! -s "${MEDIAN_TARGET}" ]]; then
-    echo "Streaming RNA_nonzero_median_10W.hg38.pickle from the legacy SCARF bundle..."
-    LEGACY_MODEL_TAR_URL="${LEGACY_MODEL_TAR_URL}" MEDIAN_TARGET="${MEDIAN_TARGET}" python - <<'PY'
+    log_step "Attempting to recover RNA_nonzero_median_10W.hg38.pickle from the legacy SCARF bundle"
+    if LEGACY_MODEL_TAR_URL="${LEGACY_MODEL_TAR_URL}" MEDIAN_TARGET="${MEDIAN_TARGET}" python - <<'PY'
 import os
 import tarfile
 import urllib.request
@@ -285,10 +310,18 @@ finally:
     if os.path.exists(tmp_target):
         os.remove(tmp_target)
 PY
+    then
+      log_info "Recovered the legacy RNA median file."
+    else
+      log_warn "Could not recover RNA_nonzero_median_10W.hg38.pickle from the public SCARF bundles."
+      log_warn "SCARF embedding will fall back to deriving per-gene nonzero medians from the input dataset."
+    fi
   else
-    echo "Skipping legacy median download; file already exists."
+    log_info "Skipping legacy median download; file already exists."
   fi
+else
+  log_info "Skipping legacy median download by request."
 fi
 
-echo "SCARF Colab bootstrap complete."
-echo "Assets directory: ${SCARF_DIR}"
+log_step "Bootstrap complete"
+log_info "Assets directory: ${SCARF_DIR}"

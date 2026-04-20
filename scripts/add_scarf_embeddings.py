@@ -14,15 +14,21 @@ from pathlib import Path
 import anndata as ad
 import numpy as np
 import pandas as pd
-import torch
 from scipy import sparse
-from transformers import BertConfig
+
+try:
+    import torch
+except ImportError:  # pragma: no cover - exercised in the lighter root test env
+    torch = None
+
+try:
+    from transformers import BertConfig
+except ImportError:  # pragma: no cover - exercised in the lighter root test env
+    BertConfig = None
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
-
-from scarf import TotalModel_downstream
 
 DEFAULT_CHECKPOINT_DIR = REPO_ROOT / "data" / "reference" / "scarf" / "weights"
 DEFAULT_PRIOR_DATA_DIR = REPO_ROOT / "data" / "reference" / "scarf" / "prior_data"
@@ -99,12 +105,20 @@ def parse_args() -> argparse.Namespace:
 
 
 def resolve_device(device_arg: str) -> torch.device:
+    if torch is None:
+        raise ImportError(
+            "PyTorch is required for SCARF embedding inference. Install the dedicated SCARF environment first."
+        )
     if device_arg == "auto":
         return torch.device("cuda" if torch.cuda.is_available() else "cpu")
     return torch.device(device_arg)
 
 
 def load_state_dict_from_index(checkpoint_dir: Path) -> dict[str, torch.Tensor]:
+    if torch is None:
+        raise ImportError(
+            "PyTorch is required for SCARF checkpoint loading. Install the dedicated SCARF environment first."
+        )
     index_file = checkpoint_dir / "pytorch_model.bin.index.json"
     with index_file.open() as handle:
         index_data = json.load(handle)
@@ -140,6 +154,57 @@ def resolve_gene_ids(adata: ad.AnnData, gene_id_key: str) -> pd.Series:
 
     gene_ids = gene_ids.str.replace(GENE_VERSION_RE, "", regex=True)
     return gene_ids
+
+
+def derive_nonzero_gene_medians(
+    counts_matrix,
+    gene_ids: pd.Series,
+    token_dictionary: dict[str, int],
+) -> dict[str, float]:
+    keep_mask = gene_ids.isin(token_dictionary).to_numpy()
+    filtered_gene_ids = gene_ids[keep_mask].to_numpy()
+    medians: dict[str, float] = {}
+
+    print(
+        "SCARF median file was not found; deriving per-gene nonzero medians from the input counts. "
+        "This is an approximation of the upstream preprocessing recipe."
+    )
+
+    if sparse.issparse(counts_matrix):
+        matrix = counts_matrix[:, keep_mask].tocsc(copy=False)
+        for col_idx, gene_id in enumerate(filtered_gene_ids):
+            start = matrix.indptr[col_idx]
+            end = matrix.indptr[col_idx + 1]
+            values = matrix.data[start:end]
+            positive_values = values[values > 0]
+            if positive_values.size:
+                medians[str(gene_id)] = float(np.median(positive_values))
+        return medians
+
+    matrix = np.asarray(counts_matrix[:, keep_mask], dtype=np.float32)
+    for col_idx, gene_id in enumerate(filtered_gene_ids):
+        values = matrix[:, col_idx]
+        positive_values = values[values > 0]
+        if positive_values.size:
+            medians[str(gene_id)] = float(np.median(positive_values))
+    return medians
+
+
+def load_or_derive_gene_medians(
+    median_path: Path,
+    counts_matrix,
+    gene_ids: pd.Series,
+    token_dictionary: dict[str, int],
+) -> tuple[dict[str, float], str]:
+    if median_path.exists():
+        return pd.read_pickle(median_path), str(median_path)
+
+    derived_medians = derive_nonzero_gene_medians(
+        counts_matrix=counts_matrix,
+        gene_ids=gene_ids,
+        token_dictionary=token_dictionary,
+    )
+    return derived_medians, "derived_from_input_counts"
 
 
 def normalize_ensembl_candidates(value: object) -> list[str]:
@@ -379,6 +444,12 @@ def compute_embeddings(
     species_token: int,
     device: torch.device,
 ) -> tuple[np.ndarray, BertConfig]:
+    if BertConfig is None:
+        raise ImportError(
+            "transformers is required for SCARF embedding inference. Install the dedicated SCARF environment first."
+        )
+    from scarf import TotalModel_downstream
+
     with (checkpoint_dir / "config.json").open() as handle:
         config = BertConfig(**json.load(handle))
 
@@ -421,12 +492,6 @@ def main() -> None:
     median_path = args.prior_data_dir / f"RNA_nonzero_median_10W.{args.species}.pickle"
     if not token_dict_path.exists():
         raise FileNotFoundError(f"Missing SCARF token dictionary: {token_dict_path}")
-    if not median_path.exists():
-        raise FileNotFoundError(
-            f"Missing SCARF RNA median file: {median_path}. "
-            "The Zenodo 17205044 model_files.zip archive includes the checkpoint weights and "
-            "hm_ENSG2token_dict.pickle, but it does not include RNA_nonzero_median_10W.hg38.pickle."
-        )
     if device.type != "cuda":
         raise RuntimeError(
             "End-to-end SCARF embedding inference currently requires CUDA in this repo. "
@@ -436,7 +501,6 @@ def main() -> None:
     adata = ad.read_h5ad(args.input_h5ad)
     counts_matrix = load_counts_matrix(adata, args.counts_layer)
     token_dictionary = pd.read_pickle(token_dict_path)
-    gene_medians = pd.read_pickle(median_path)
     if args.gene_id_key in adata.var.columns:
         gene_ids = resolve_gene_ids(adata, args.gene_id_key)
     else:
@@ -447,6 +511,12 @@ def main() -> None:
             cache_path=args.gene_map_cache,
             gene_id_key=args.gene_id_key,
         )
+    gene_medians, median_source = load_or_derive_gene_medians(
+        median_path=median_path,
+        counts_matrix=counts_matrix,
+        gene_ids=gene_ids,
+        token_dictionary=token_dictionary,
+    )
 
     normalized_matrix, filtered_gene_ids, token_ids = normalize_with_scarf_recipe(
         counts_matrix,
@@ -477,6 +547,7 @@ def main() -> None:
         "gene_map_cache": str(args.gene_map_cache),
         "species": args.species,
         "device": str(device),
+        "median_source": median_source,
         "num_model_genes_used": int(len(filtered_gene_ids)),
         "embedding_dim": int(config.mlp_out_size),
     }
