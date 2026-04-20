@@ -73,6 +73,8 @@ done
 
 MODEL_ZIP_URL="https://zenodo.org/api/records/17205044/files/model_files.zip/content"
 LEGACY_MODEL_TAR_URL="https://zenodo.org/api/records/16956913/files/model_files.tar.gz/content"
+SUPPORTED_TORCH_VERSION="2.6.0"
+SUPPORTED_TORCH_INDEX_URL="https://download.pytorch.org/whl/cu124"
 
 mkdir -p "${SCARF_DIR}/weights" "${SCARF_DIR}/prior_data"
 
@@ -96,7 +98,7 @@ def normalize_torch_version(raw: str) -> str:
     return ".".join(parts[:2])
 
 
-def select_asset(repo: str, tag: str, stem: str, py_tag: str, torch_tag: str, abi: str, cuda_candidates: list[str]):
+def find_asset(repo: str, tag: str, stem: str, py_tag: str, torch_tag: str, abi: str, cuda_candidates: list[str]):
     url = f"https://api.github.com/repos/{repo}/releases/tags/{tag}"
     with urllib.request.urlopen(url) as response:
         assets = json.load(response)["assets"]
@@ -117,57 +119,77 @@ def select_asset(repo: str, tag: str, stem: str, py_tag: str, torch_tag: str, ab
         matches.append(asset)
 
     if not matches:
-        raise SystemExit(
-            f"No prebuilt {stem} wheel matches python={py_tag}, torch={torch_tag}, cxx11abi={abi}."
-        )
+        return None
 
     for cuda_tag in cuda_candidates:
         for asset in matches:
             if f"+{cuda_tag}torch{torch_tag}" in asset["name"]:
                 return asset["browser_download_url"], asset["name"]
 
-    candidate_names = ", ".join(asset["name"] for asset in matches)
-    raise SystemExit(
-        f"No compatible CUDA-tagged {stem} wheel found for python={py_tag}, torch={torch_tag}, "
-        f"cxx11abi={abi}. Candidates: {candidate_names}"
+    return None
+
+
+def choose_runtime(torch_version_raw: str, abi: str, cuda_version: str | None):
+    py_tag = f"cp{sys.version_info.major}{sys.version_info.minor}"
+    torch_tag = normalize_torch_version(torch_version_raw)
+    cuda_candidates: list[str] = []
+    if cuda_version:
+        cuda_major = cuda_version.split(".", 1)[0]
+        cuda_candidates.append(f"cu{cuda_major}")
+    for fallback in ("cu12", "cu11"):
+        if fallback not in cuda_candidates:
+            cuda_candidates.append(fallback)
+
+    mamba = find_asset(
+        repo="state-spaces/mamba",
+        tag="v2.3.1",
+        stem="mamba_ssm-",
+        py_tag=py_tag,
+        torch_tag=torch_tag,
+        abi=abi,
+        cuda_candidates=cuda_candidates,
     )
+    causal = find_asset(
+        repo="Dao-AILab/causal-conv1d",
+        tag="v1.6.1.post4",
+        stem="causal_conv1d-",
+        py_tag=py_tag,
+        torch_tag=torch_tag,
+        abi=abi,
+        cuda_candidates=cuda_candidates,
+    )
+    return py_tag, torch_tag, cuda_candidates, mamba, causal
 
 
-py_tag = f"cp{sys.version_info.major}{sys.version_info.minor}"
-torch_tag = normalize_torch_version(torch.__version__)
 abi = "TRUE" if bool(getattr(torch._C, "_GLIBCXX_USE_CXX11_ABI", False)) else "FALSE"
 cuda_version = torch.version.cuda
-cuda_candidates: list[str] = []
-if cuda_version:
-    cuda_major = cuda_version.split(".", 1)[0]
-    cuda_candidates.append(f"cu{cuda_major}")
-for fallback in ("cu12", "cu11"):
-    if fallback not in cuda_candidates:
-        cuda_candidates.append(fallback)
+py_tag, torch_tag, cuda_candidates, mamba, causal = choose_runtime(torch.__version__, abi, cuda_version)
 
-mamba_url, mamba_name = select_asset(
-    repo="state-spaces/mamba",
-    tag="v2.3.1",
-    stem="mamba_ssm-",
-    py_tag=py_tag,
-    torch_tag=torch_tag,
-    abi=abi,
-    cuda_candidates=cuda_candidates,
-)
-causal_url, causal_name = select_asset(
-    repo="Dao-AILab/causal-conv1d",
-    tag="v1.6.1.post4",
-    stem="causal_conv1d-",
-    py_tag=py_tag,
-    torch_tag=torch_tag,
-    abi=abi,
-    cuda_candidates=cuda_candidates,
-)
+needs_torch_reset = mamba is None or causal is None
+selected_torch_version = torch.__version__.split("+", 1)[0]
+selected_abi = abi
+
+if needs_torch_reset:
+    selected_torch_version = "2.6.0"
+    selected_abi = "FALSE"
+    py_tag, torch_tag, cuda_candidates, mamba, causal = choose_runtime(selected_torch_version, selected_abi, cuda_version)
+    if mamba is None or causal is None:
+        raise SystemExit(
+            f"No compatible SCARF wheels found for python={py_tag}. "
+            f"Tried live torch={torch.__version__} abi={abi} and fallback torch={selected_torch_version} abi={selected_abi}."
+        )
+
+mamba_url, mamba_name = mamba
+causal_url, causal_name = causal
 
 print(f"PYTHON_VERSION={json.dumps(f'{sys.version_info.major}.{sys.version_info.minor}')}")
-print(f"TORCH_VERSION={json.dumps(torch.__version__.split('+', 1)[0])}")
+print(f"LIVE_TORCH_VERSION={json.dumps(torch.__version__.split('+', 1)[0])}")
+print(f"SELECTED_TORCH_VERSION={json.dumps(selected_torch_version)}")
+print(f"LIVE_TORCH_CXX11ABI={json.dumps(abi)}")
+print(f"SELECTED_TORCH_CXX11ABI={json.dumps(selected_abi)}")
 print(f"TORCH_CUDA={json.dumps(cuda_version or '')}")
 print(f"GPU_RUNTIME={json.dumps('1' if torch.cuda.is_available() else '0')}")
+print(f"RESET_TORCH={json.dumps('1' if needs_torch_reset else '0')}")
 print(f"MAMBA_URL={json.dumps(mamba_url)}")
 print(f"MAMBA_WHEEL={json.dumps(mamba_name)}")
 print(f"CAUSAL_CONV_URL={json.dumps(causal_url)}")
@@ -176,11 +198,22 @@ PY
   )"
 
   echo "Python runtime: ${PYTHON_VERSION}"
-  echo "Torch runtime: ${TORCH_VERSION} (CUDA ${TORCH_CUDA:-unknown})"
+  echo "Live torch runtime: ${LIVE_TORCH_VERSION} (CUDA ${TORCH_CUDA:-unknown}, cxx11abi=${LIVE_TORCH_CXX11ABI})"
+  if [[ "${RESET_TORCH}" == "1" ]]; then
+    echo "Resetting torch runtime to ${SELECTED_TORCH_VERSION} for SCARF wheel compatibility..."
+    python -m pip install --quiet --upgrade pip
+    python -m pip install --quiet --force-reinstall \
+      --index-url "${SUPPORTED_TORCH_INDEX_URL}" \
+      "torch==${SUPPORTED_TORCH_VERSION}" \
+      "torchvision==0.21.0" \
+      "torchaudio==2.6.0"
+  else
+    python -m pip install --quiet --upgrade pip
+  fi
+  echo "Selected torch runtime: ${SELECTED_TORCH_VERSION} (cxx11abi=${SELECTED_TORCH_CXX11ABI})"
   echo "Installing ${CAUSAL_CONV_WHEEL}"
   echo "Installing ${MAMBA_WHEEL}"
 
-  python -m pip install --quiet --upgrade pip
   python -m pip install --quiet \
     "anndata>=0.9,<0.12" \
     "huggingface-hub>=0.25,<1.0" \
