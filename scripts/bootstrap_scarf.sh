@@ -100,6 +100,21 @@ log_warn() {
   echo "[$(timestamp)] WARNING: $*" >&2
 }
 
+ensure_pip_available() {
+  if python - <<'PY' >/dev/null 2>&1
+import importlib.util
+import sys
+
+raise SystemExit(0 if importlib.util.find_spec("pip") is not None else 1)
+PY
+  then
+    return 0
+  fi
+
+  log_step "Bootstrapping pip into the active Python environment"
+  python -m ensurepip --upgrade
+}
+
 require_command() {
   if ! command -v "$1" >/dev/null 2>&1; then
     echo "Required command not found: $1" >&2
@@ -126,6 +141,17 @@ require_command unzip
 
 mkdir -p "${SCARF_DIR}/weights" "${SCARF_DIR}/prior_data"
 log_info "Using SCARF asset directory: ${SCARF_DIR}"
+eval "$(
+  python - <<'PY'
+import json
+import sys
+
+print(f"ACTIVE_PYTHON={json.dumps(sys.executable)}")
+print(f"ACTIVE_PREFIX={json.dumps(sys.prefix)}")
+PY
+)"
+log_info "Active Python executable: ${ACTIVE_PYTHON}"
+log_info "Active Python prefix: ${ACTIVE_PREFIX}"
 
 if [[ "${INSTALL_RUNTIME}" -eq 1 ]]; then
   log_step "Inspecting the runtime and selecting SCARF dependency wheels"
@@ -278,6 +304,7 @@ PY
   fi
 
   log_step "Upgrading pip"
+  ensure_pip_available
   python -m pip install --quiet --upgrade pip
 
   if [[ "${RESET_TORCH}" == "1" ]]; then

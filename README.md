@@ -141,6 +141,8 @@ This repo now includes a general SCARF bootstrap path for Linux x86_64 GPU machi
 
 The generic bootstrap script inspects the active Python, torch, CUDA, and CXX ABI configuration, then resolves matching prebuilt `mamba-ssm` and `causal-conv1d` wheels from the GitHub release assets instead of relying on source builds. If torch is missing or incompatible with those wheels, it falls back to a known-good `torch==2.6.0` CUDA runtime.
 
+When run through `uv run --project envs/scarf ...`, the bootstrap installs into `envs/scarf/.venv`. The script now logs the active Python executable/prefix and will bootstrap `pip` into that environment automatically if the `uv` virtualenv was created without it.
+
 Typical setup from the repository root on a Linux GPU machine is:
 
 ```bash
