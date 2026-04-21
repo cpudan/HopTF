@@ -481,6 +481,25 @@ def compute_embeddings(
     return np.vstack(embeddings), config
 
 
+def sanitize_adata_strings_for_h5ad(adata: ad.AnnData) -> None:
+    """
+    Normalize obs/var indexes into plain Python-object strings before writing
+    H5AD files.
+
+    AnnData 0.11 gates StringArray writes behind a compatibility flag because
+    older readers may not understand that encoding. Converting the axes indexes
+    avoids the common `_index` write failure while preserving nullable string
+    columns as-is.
+    """
+
+    def sanitize_index(index: pd.Index) -> pd.Index:
+        values = index.astype("string").to_numpy(dtype=object, na_value=None)
+        return pd.Index(values, name=index.name)
+
+    adata.obs.index = sanitize_index(adata.obs.index)
+    adata.var.index = sanitize_index(adata.var.index)
+
+
 def main() -> None:
     args = parse_args()
     device = resolve_device(args.device)
@@ -553,6 +572,10 @@ def main() -> None:
     }
 
     args.output_h5ad.parent.mkdir(parents=True, exist_ok=True)
+    sanitize_adata_strings_for_h5ad(adata)
+    # Keep the AnnData opt-in enabled as a fallback for any remaining
+    # extension-string payloads outside obs/var.
+    ad.settings.allow_write_nullable_strings = True
     adata.write_h5ad(args.output_h5ad, compression="gzip")
     print(f"Wrote {args.output_h5ad}")
     print(f"Stored embeddings in adata.obsm[{args.obsm_key!r}]")

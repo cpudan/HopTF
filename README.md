@@ -259,6 +259,51 @@ Download a specific file from the dataset repo:
 uv run hf download pvd232/HopTF path/in/repo --repo-type dataset --local-dir data/hf/HopTF
 ```
 
+## Linear Probe
+
+Use [`mvp/run_linear_probe.py`](./mvp/run_linear_probe.py) to run the responder-vs-nonresponder linear probe over TF isoform features.
+
+Important: the probe script does not read an `.h5ad` directly. It expects three separate inputs:
+
+- a metadata CSV with one row per perturbation/isoform and these columns:
+  `label_status`, `responder_label`, `isoform_embedding_id`, `protein_aa_length`, `sequence`, and `gene_symbol`
+- an embedding matrix `.npy` whose row order matches the vocab file
+- a vocab `.json` list whose entries match the `isoform_embedding_id` values used in the metadata CSV
+
+For the published Joung TF Atlas MORF isoform probe, the smallest Hugging Face download that satisfies those inputs is:
+
+```bash
+uv run hf download pvd232/HopTF --repo-type dataset --local-dir data/hf_min \
+  experiments/v1_esm_linear_probe/diagnostics/h5ad_responder_full/PERTURBATION_METADATA.csv \
+  processed/protein_embeddings/tf_atlas_morf_isoforms_esmc_600m/metadata/tf_atlas_morf_isoform_vocab.json \
+  processed/protein_embeddings/tf_atlas_morf_isoforms_esmc_600m/tf_atlas_morf_isoforms_esmc_600m_mean_non_special.npy
+```
+
+Run the probe with:
+
+```bash
+uv run python mvp/run_linear_probe.py \
+  --metadata data/hf_min/experiments/v1_esm_linear_probe/diagnostics/h5ad_responder_full/PERTURBATION_METADATA.csv \
+  --embedding-matrix data/hf_min/processed/protein_embeddings/tf_atlas_morf_isoforms_esmc_600m/tf_atlas_morf_isoforms_esmc_600m_mean_non_special.npy \
+  --vocab data/hf_min/processed/protein_embeddings/tf_atlas_morf_isoforms_esmc_600m/metadata/tf_atlas_morf_isoform_vocab.json \
+  --out data/processed/linear_probe/RESULTS.json
+```
+
+By default the script evaluates these feature sets:
+
+- `esmc`
+- `protein_length`
+- `aa_composition`
+- `gene_symbol_onehot`
+
+and also runs an `esmc` shuffled-label control.
+
+The default cross-validation grouping is `gene_symbol`, so the `gene_symbol_onehot` baseline should stay near chance if the grouping is working correctly.
+
+Important identity caveat: use the MORF isoform embedding artifact above with the published `PERTURBATION_METADATA.csv`. Do not swap in the `tf_atlas_raw_direct_esmc_600m` artifact for this probe. The raw-direct artifact is keyed by TF symbol identity, while the linear-probe metadata is keyed by MORF isoform identity through `isoform_embedding_id`, and mixing those artifacts can silently produce misleadingly poor results.
+
+If you only have a TF Atlas `.h5ad`, that is not enough by itself to run `mvp/run_linear_probe.py`. You still need to build or obtain a metadata CSV that maps each perturbation to the correct `isoform_embedding_id`, sequence, and label columns expected by the script.
+
 ### Upload Examples
 
 Upload a file or folder into the dataset repo:

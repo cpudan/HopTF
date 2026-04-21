@@ -515,6 +515,25 @@ def build_anndata(
     return adata
 
 
+def sanitize_adata_strings_for_h5ad(adata: ad.AnnData) -> None:
+    """
+    Normalize obs/var indexes into plain Python-object strings before writing
+    H5AD files.
+
+    AnnData 0.11 gates StringArray writes behind a compatibility flag because
+    older readers may not understand that encoding. Converting the axes indexes
+    avoids the common `_index` write failure while preserving nullable string
+    columns as-is.
+    """
+
+    def sanitize_index(index: pd.Index) -> pd.Index:
+        values = index.astype("string").to_numpy(dtype=object, na_value=None)
+        return pd.Index(values, name=index.name)
+
+    adata.obs.index = sanitize_index(adata.obs.index)
+    adata.var.index = sanitize_index(adata.var.index)
+
+
 def main() -> None:
     args = parse_args()
     fasta_output = (
@@ -526,6 +545,8 @@ def main() -> None:
     adata = build_anndata(args.input_dir, morf_xlsx_path, fasta_output)
 
     args.output.parent.mkdir(parents=True, exist_ok=True)
+    sanitize_adata_strings_for_h5ad(adata)
+    ad.settings.allow_write_nullable_strings = True
     adata.write_h5ad(args.output, compression="gzip")
     print(f"Wrote {args.output}")
     print(f"Wrote {fasta_output}")
