@@ -1,0 +1,47 @@
+{
+  "hard_label_length_quartiles": {
+    "quantile_cutpoints": [
+      460.0,
+      593.5,
+      784.0
+    ],
+    "results": [
+      {
+        "quartile": "Q1",
+        "mean_length": 363.88812255859375,
+        "n_rows": 429,
+        "auroc": 0.5837166283371662,
+        "auprc": 0.748464117709809,
+        "balanced_accuracy": 0.5571192880711929,
+        "positive_fraction": 0.6806526806526807
+      },
+      {
+        "quartile": "Q2",
+        "mean_length": 525.0819702148438,
+        "n_rows": 427,
+        "auroc": 0.5865583888989008,
+        "auprc": 0.6793260398760819,
+        "balanced_accuracy": 0.5729072805910975,
+        "positive_fraction": 0.5807962529274004
+      },
+      {
+        "quartile": "Q3",
+        "mean_length": 677.1398315429688,
+        "n_rows": 429,
+        "auroc": 0.5924296962879639,
+        "auprc": 0.5059776656942538,
+        "balanced_accuracy": 0.5792125984251969,
+        "positive_fraction": 0.40792540792540793
+      },
+      {
+        "quartile": "Q4",
+        "mean_length": 1104.41455078125,
+        "n_rows": 427,
+        "auroc": 0.5848584040073402,
+        "auprc": 0.4334841756105128,
+        "balanced_accuracy": 0.5555720874869812,
+        "positive_fraction": 0.33021077283372363
+      }
+    ]
+  }
+}

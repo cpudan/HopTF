@@ -62,6 +62,23 @@ Read:
 - `gene_symbol_onehot` stays at chance under grouped CV.
 - the shuffled-label control stays near chance.
 
+
+## Hard Labels: Length-Binned Control
+
+The hard-label surface was also checked within protein-length quartiles so `ESM-C` was not only benefiting from mixing short and long proteins.
+
+| Quartile | Mean length | AUROC | AUPRC | Balanced accuracy | Rows |
+| :--- | ---: | ---: | ---: | ---: | ---: |
+| `Q1` | 363.9 | 0.5837 | 0.7485 | 0.5571 | 429 |
+| `Q2` | 525.1 | 0.5866 | 0.6793 | 0.5729 | 427 |
+| `Q3` | 677.1 | 0.5924 | 0.5060 | 0.5792 | 429 |
+| `Q4` | 1104.4 | 0.5849 | 0.4335 | 0.5556 | 427 |
+
+Read:
+- `ESM-C` stays above chance by AUROC in every length quartile.
+- the signal is not only coming from mixing short and long proteins together.
+- AUPRC shifts across quartiles because responder prevalence changes across the bins.
+
 ## Files
 
 - hard-label summary: `hoptf/colleague_scripts/outputs/linear_probe_report/SUMMARY.json`
