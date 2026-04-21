@@ -1,0 +1,9 @@
+{
+  "source": "/home/machina/MANTRA/hoptf/experiments/v1_esm_linear_probe/diagnostics/h5ad_responder_full/PERTURBATION_METADATA.csv",
+  "out": "/home/machina/MANTRA/hoptf/colleague_scripts/outputs/linear_probe_report/PERTURBATION_METADATA_soft.csv",
+  "threshold_kind": "median_response_score",
+  "median_threshold": 2.624636650085449,
+  "n_rows": 3421,
+  "n_positive": 1711,
+  "n_negative": 1710
+}

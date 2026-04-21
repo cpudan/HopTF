@@ -1,118 +1,69 @@
-# Linear Probe Report
+# Linear Probe Results
 
-## Scope
+This report contains the two main label surfaces:
 
-This report collects the current standalone probe results for:
+1. hard responder labels from the original quartile split
+2. soft responder labels from a median `response_score` split
 
-- the primary hard-label responder probe
-- the matched Borzoi panel subset
-- the softer median-split probe
-- length-control checks on `ESM-C`
+Both runs use the full TF set. There is no Borzoi feature and no chromosome coverage restriction.
 
-## 1. Primary Hard-Label Probe
+## Common Setup
 
-Label surface:
+- grouping: `gene_symbol`
+- cross-validation: `StratifiedGroupKFold`, `5` folds
+- embedding family: `ESM-C 600M`
+- feature sets:
+  - `esmc`
+  - `protein_length`
+  - `aa_composition`
+  - `gene_symbol_onehot`
+  - `esmc` with shuffled labels
 
-- keep only `responder` and `nonresponder`
-- drop the ambiguous middle
+## Hard Labels
 
-Rows:
+- labeled rows: `1712`
+- positives: `856`
+- negatives: `856`
+- source: original responder/nonresponder quartile labeling
 
-- `1712` labeled perturbations
-
-Results:
-
-| Feature set | AUROC | AUPRC | Balanced accuracy |
-| :--- | ---: | ---: | ---: |
-| `esmc` | 0.6210 | 0.6149 | 0.5929 |
-| `protein_length` | 0.6533 | 0.6250 | 0.6139 |
-| `aa_composition` | 0.6038 | 0.5915 | 0.5754 |
-| `gene_symbol_onehot` | 0.4862 | 0.4906 | 0.4907 |
-| `esmc_shuffled_labels` | 0.5117 | 0.5135 | 0.5035 |
-
-Read:
-
-- `ESM-C` carries real signal above the shuffled null.
-- `protein_length` is a strong nuisance baseline.
-- `gene_symbol_onehot` stays useless under grouped CV.
-
-
-## 2. Soft Label Probe
-
-Soft label definition:
-
-- `responder_score_soft = 1` if `response_score >= median(response_score)`
-- `responder_score_soft = 0` otherwise
-
-Rows:
-
-- `3421`
-
-Median threshold:
-
-- `2.624636650085449`
-
-Results:
-
-| Feature set | AUROC | AUPRC | Balanced accuracy |
-| :--- | ---: | ---: | ---: |
-| `esmc` | 0.5894 | 0.5814 | 0.5665 |
-| `protein_length` | 0.5688 | 0.5159 | 0.5820 |
-| `aa_composition` | 0.5672 | 0.5492 | 0.5533 |
-| `gene_symbol_onehot` | 0.4803 | 0.4886 | 0.4832 |
-| `esmc_shuffled_labels` | 0.4827 | 0.4874 | 0.4887 |
+| Feature set | Label source | AUROC | AUPRC | Balanced accuracy |
+| :--- | :--- | ---: | ---: | ---: |
+| `protein_length` | metadata | 0.6533 | 0.6250 | 0.6139 |
+| `esmc` | metadata | 0.6185 | 0.6113 | 0.5940 |
+| `aa_composition` | metadata | 0.6038 | 0.5915 | 0.5754 |
+| `esmc` | shuffled labels | 0.5117 | 0.5135 | 0.5035 |
+| `gene_symbol_onehot` | metadata | 0.4862 | 0.4906 | 0.4907 |
 
 Read:
+- `ESM-C` is clearly above the shuffled-label null.
+- `ESM-C` beats amino-acid composition.
+- `gene_symbol_onehot` stays at chance under grouped CV.
+- `protein_length` is still the strongest simple baseline on this hard-label surface.
 
-- on the softer median-split label surface, `ESM-C` is stronger than `protein_length` by AUROC and AUPRC
-- this is more consistent with the concern that hard quartile labels over-amplify nuisance structure
+## Soft 0.5 Labels
 
-## 3. Length Controls
+- labeled rows: `3421`
+- positives: `1711`
+- negatives: `1710`
+- threshold: `response_score >= 2.624636650085449`
+- source: median split over all eligible non-control TF rows
 
-These checks ask whether `ESM-C` still carries signal after controlling for protein length.
-
-### 3.1 Residualized `ESM-C`
-
-Procedure:
-
-- within each CV fold, regress each embedding dimension on `protein_aa_length` using the training split
-- subtract the predicted length component from both train and test embeddings
-- run the same grouped logistic probe on the residualized features
-
-Results on the hard-label surface:
-
-| Feature set | AUROC | AUPRC | Balanced accuracy |
-| :--- | ---: | ---: | ---: |
-| `esmc` | 0.6210 | 0.6149 | 0.5929 |
-| `esmc_length_residualized` | 0.5985 | 0.5926 | 0.5718 |
+| Feature set | Label source | AUROC | AUPRC | Balanced accuracy |
+| :--- | :--- | ---: | ---: | ---: |
+| `esmc` | metadata | 0.5889 | 0.5816 | 0.5683 |
+| `protein_length` | metadata | 0.5688 | 0.5159 | 0.5820 |
+| `aa_composition` | metadata | 0.5672 | 0.5492 | 0.5533 |
+| `esmc` | shuffled labels | 0.4833 | 0.4890 | 0.4917 |
+| `gene_symbol_onehot` | metadata | 0.4803 | 0.4886 | 0.4832 |
 
 Read:
+- `ESM-C` is the strongest feature set on AUROC and AUPRC under the median split.
+- `protein_length` still carries signal, but it is weaker than `ESM-C` on ranking metrics.
+- `gene_symbol_onehot` stays at chance under grouped CV.
+- the shuffled-label control stays near chance.
 
-- performance drops after residualizing out length
-- the drop is real but not catastrophic
-- `ESM-C` retains signal beyond a simple linear length component
+## Files
 
-### 3.2 `ESM-C` Within Length Quartiles
-
-Hard-label surface, grouped CV, evaluated separately within length quartiles:
-
-| Quartile | Mean length | AUROC | AUPRC | Balanced accuracy | Rows |
-| :--- | ---: | ---: | ---: | ---: | ---: |
-| Q1 | 363.9 | 0.5837 | 0.7485 | 0.5571 | 429 |
-| Q2 | 525.1 | 0.5866 | 0.6793 | 0.5729 | 427 |
-| Q3 | 677.1 | 0.5924 | 0.5060 | 0.5792 | 429 |
-| Q4 | 1104.4 | 0.5849 | 0.4335 | 0.5556 | 427 |
-
-Read:
-
-- `ESM-C` remains above chance within every length quartile
-- signal is not coming only from mixing short and long proteins together
-- AUPRC changes strongly across bins because class balance changes across the quartiles
-
-## 4. Bottom Line
-
-- `ESM-C` is a real signal-bearing TF embedding on this responder probe
-- `protein_length` is a strong nuisance baseline on the hard quartile labels
-- the softer median-split probe weakens the length story and improves the relative standing of `ESM-C`
-- residualizing length hurts `ESM-C`, but it does not erase the signal
-- within-bin probes show that `ESM-C` is not purely a length detector
+- hard-label summary: `hoptf/colleague_scripts/outputs/linear_probe_report/SUMMARY.json`
+- soft-label summary: `hoptf/colleague_scripts/outputs/linear_probe_report/SUMMARY_soft.json`
+- soft-label threshold summary: `hoptf/colleague_scripts/outputs/linear_probe_report/SOFT_LABEL_SUMMARY.json`

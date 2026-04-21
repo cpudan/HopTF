@@ -1,117 +1,254 @@
 {
-  "primary_hard_label": {
-    "rows": 1712,
-    "esmc": {
-      "AUROC": 0.6209753581098786,
-      "AUPRC": 0.6149440764785987,
-      "balanced_accuracy": 0.592873831775701
-    },
-    "protein_length": {
-      "AUROC": 0.6533,
-      "AUPRC": 0.625,
-      "balanced_accuracy": 0.6139
-    },
-    "aa_composition": {
-      "AUROC": 0.6038,
-      "AUPRC": 0.5915,
-      "balanced_accuracy": 0.5754
-    },
-    "gene_symbol_onehot": {
-      "AUROC": 0.4862,
-      "AUPRC": 0.4906,
-      "balanced_accuracy": 0.4907
-    }
+  "config": {
+    "c": 1.0,
+    "feature_sets": [
+      "esmc",
+      "protein_length",
+      "aa_composition",
+      "gene_symbol_onehot"
+    ],
+    "group_column": "gene_symbol",
+    "max_iter": 100,
+    "n_splits": 5,
+    "random_state": 0,
+    "solver_tol": 0.01
   },
-  "matched_panel": {
-    "rows": 606,
-    "unique_genes": 422,
-    "unique_windows": 216,
-    "esmc": {
-      "AUROC": 0.6112421383647799,
-      "AUPRC": 0.5868200910321464,
-      "balanced_accuracy": 0.5921776729559749
+  "n_labeled_rows": 1712,
+  "results": [
+    {
+      "feature_set": "esmc",
+      "label_source": "metadata",
+      "metrics": {
+        "AUPRC": 0.6113176904465916,
+        "AUROC": 0.6185044818324745,
+        "balanced_accuracy": 0.5940420560747663,
+        "c": 1.0,
+        "folds": [
+          {
+            "fold": 1,
+            "n_test": 324,
+            "n_train": 1388,
+            "test_positive": 162
+          },
+          {
+            "fold": 2,
+            "n_test": 367,
+            "n_train": 1345,
+            "test_positive": 186
+          },
+          {
+            "fold": 3,
+            "n_test": 319,
+            "n_train": 1393,
+            "test_positive": 160
+          },
+          {
+            "fold": 4,
+            "n_test": 367,
+            "n_train": 1345,
+            "test_positive": 189
+          },
+          {
+            "fold": 5,
+            "n_test": 335,
+            "n_train": 1377,
+            "test_positive": 159
+          }
+        ],
+        "n_negative": 856,
+        "n_positive": 856,
+        "n_samples": 1712,
+        "n_splits": 5,
+        "split_kind": "stratified_group"
+      }
     },
-    "protein_length": {
-      "AUROC": 0.628767033542977,
-      "AUPRC": 0.5974309723126938,
-      "balanced_accuracy": 0.5766837002096437
+    {
+      "feature_set": "protein_length",
+      "label_source": "metadata",
+      "metrics": {
+        "AUPRC": 0.624968963944468,
+        "AUROC": 0.6533062385361167,
+        "balanced_accuracy": 0.6139018691588786,
+        "c": 1.0,
+        "folds": [
+          {
+            "fold": 1,
+            "n_test": 324,
+            "n_train": 1388,
+            "test_positive": 162
+          },
+          {
+            "fold": 2,
+            "n_test": 367,
+            "n_train": 1345,
+            "test_positive": 186
+          },
+          {
+            "fold": 3,
+            "n_test": 319,
+            "n_train": 1393,
+            "test_positive": 160
+          },
+          {
+            "fold": 4,
+            "n_test": 367,
+            "n_train": 1345,
+            "test_positive": 189
+          },
+          {
+            "fold": 5,
+            "n_test": 335,
+            "n_train": 1377,
+            "test_positive": 159
+          }
+        ],
+        "n_negative": 856,
+        "n_positive": 856,
+        "n_samples": 1712,
+        "n_splits": 5,
+        "split_kind": "stratified_group"
+      }
     },
-    "aa_composition": {
-      "AUROC": 0.569624606918239,
-      "AUPRC": 0.5425175358998209,
-      "balanced_accuracy": 0.566791142557652
+    {
+      "feature_set": "aa_composition",
+      "label_source": "metadata",
+      "metrics": {
+        "AUPRC": 0.591520685786564,
+        "AUROC": 0.6038279817014587,
+        "balanced_accuracy": 0.5753504672897196,
+        "c": 1.0,
+        "folds": [
+          {
+            "fold": 1,
+            "n_test": 324,
+            "n_train": 1388,
+            "test_positive": 162
+          },
+          {
+            "fold": 2,
+            "n_test": 367,
+            "n_train": 1345,
+            "test_positive": 186
+          },
+          {
+            "fold": 3,
+            "n_test": 319,
+            "n_train": 1393,
+            "test_positive": 160
+          },
+          {
+            "fold": 4,
+            "n_test": 367,
+            "n_train": 1345,
+            "test_positive": 189
+          },
+          {
+            "fold": 5,
+            "n_test": 335,
+            "n_train": 1377,
+            "test_positive": 159
+          }
+        ],
+        "n_negative": 856,
+        "n_positive": 856,
+        "n_samples": 1712,
+        "n_splits": 5,
+        "split_kind": "stratified_group"
+      }
     },
-    "gene_symbol_onehot": {
-      "AUROC": 0.46809486373165615,
-      "AUPRC": 0.45575930684939503,
-      "balanced_accuracy": 0.5
+    {
+      "feature_set": "gene_symbol_onehot",
+      "label_source": "metadata",
+      "metrics": {
+        "AUPRC": 0.4905639450089677,
+        "AUROC": 0.4861696436369989,
+        "balanced_accuracy": 0.49065420560747663,
+        "c": 1.0,
+        "folds": [
+          {
+            "fold": 1,
+            "n_test": 324,
+            "n_train": 1388,
+            "test_positive": 162
+          },
+          {
+            "fold": 2,
+            "n_test": 367,
+            "n_train": 1345,
+            "test_positive": 186
+          },
+          {
+            "fold": 3,
+            "n_test": 319,
+            "n_train": 1393,
+            "test_positive": 160
+          },
+          {
+            "fold": 4,
+            "n_test": 367,
+            "n_train": 1345,
+            "test_positive": 189
+          },
+          {
+            "fold": 5,
+            "n_test": 335,
+            "n_train": 1377,
+            "test_positive": 159
+          }
+        ],
+        "n_negative": 856,
+        "n_positive": 856,
+        "n_samples": 1712,
+        "n_splits": 5,
+        "split_kind": "stratified_group"
+      }
     },
-    "exploratory_borzoi": {
-      "borzoi_mean": {
-        "AUROC": 0.5552225279524808,
-        "AUPRC": 0.5296702337577758,
-        "balanced_accuracy": 0.5390788784067087
-      },
-      "esmc_plus_borzoi_mean": {
-        "AUROC": 0.6198025856044724,
-        "AUPRC": 0.5934309914540778,
-        "balanced_accuracy": 0.5906053459119497
+    {
+      "feature_set": "esmc",
+      "label_source": "shuffled_metadata_labels",
+      "metrics": {
+        "AUPRC": 0.513492244809986,
+        "AUROC": 0.5116822429906542,
+        "balanced_accuracy": 0.5035046728971962,
+        "c": 1.0,
+        "folds": [
+          {
+            "fold": 1,
+            "n_test": 340,
+            "n_train": 1372,
+            "test_positive": 161
+          },
+          {
+            "fold": 2,
+            "n_test": 345,
+            "n_train": 1367,
+            "test_positive": 178
+          },
+          {
+            "fold": 3,
+            "n_test": 357,
+            "n_train": 1355,
+            "test_positive": 175
+          },
+          {
+            "fold": 4,
+            "n_test": 341,
+            "n_train": 1371,
+            "test_positive": 182
+          },
+          {
+            "fold": 5,
+            "n_test": 329,
+            "n_train": 1383,
+            "test_positive": 160
+          }
+        ],
+        "n_negative": 856,
+        "n_positive": 856,
+        "n_samples": 1712,
+        "n_splits": 5,
+        "split_kind": "stratified_group"
       }
     }
-  },
-  "soft_label": {
-    "rows": 3421,
-    "median_threshold": 2.624636650085449,
-    "esmc": {
-      "AUROC": 0.5894258342134315,
-      "AUPRC": 0.5813644947572428,
-      "balanced_accuracy": 0.5665038057836975
-    },
-    "protein_length": {
-      "AUROC": 0.568762325646573,
-      "AUPRC": 0.5159012277306687,
-      "balanced_accuracy": 0.5819665323448892
-    }
-  },
-  "length_controls": {
-    "esmc_length_residualized": {
-      "AUROC": 0.5984924993449209,
-      "AUPRC": 0.5926228425043205,
-      "balanced_accuracy": 0.5718457943925234
-    },
-    "esmc_by_length_quartile": [
-      {
-        "quartile": 1,
-        "rows": 429,
-        "mean_length": 363.88812255859375,
-        "AUROC": 0.5837166283371662,
-        "AUPRC": 0.748464117709809,
-        "balanced_accuracy": 0.5571192880711929
-      },
-      {
-        "quartile": 2,
-        "rows": 427,
-        "mean_length": 525.0819702148438,
-        "AUROC": 0.5865583888989008,
-        "AUPRC": 0.6793260398760819,
-        "balanced_accuracy": 0.5729072805910975
-      },
-      {
-        "quartile": 3,
-        "rows": 429,
-        "mean_length": 677.1398315429688,
-        "AUROC": 0.5924296962879639,
-        "AUPRC": 0.5059776656942538,
-        "balanced_accuracy": 0.5792125984251969
-      },
-      {
-        "quartile": 4,
-        "rows": 427,
-        "mean_length": 1104.41455078125,
-        "AUROC": 0.5848584040073402,
-        "AUPRC": 0.4334841756105128,
-        "balanced_accuracy": 0.5555720874869812
-      }
-    ]
-  }
+  ]
 }

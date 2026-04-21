@@ -1,0 +1,254 @@
+{
+  "config": {
+    "c": 1.0,
+    "feature_sets": [
+      "esmc",
+      "protein_length",
+      "aa_composition",
+      "gene_symbol_onehot"
+    ],
+    "group_column": "gene_symbol",
+    "max_iter": 100,
+    "n_splits": 5,
+    "random_state": 0,
+    "solver_tol": 0.01
+  },
+  "n_labeled_rows": 3421,
+  "results": [
+    {
+      "feature_set": "esmc",
+      "label_source": "metadata",
+      "metrics": {
+        "AUPRC": 0.5815647696078994,
+        "AUROC": 0.5889340046004354,
+        "balanced_accuracy": 0.5682583626414566,
+        "c": 1.0,
+        "folds": [
+          {
+            "fold": 1,
+            "n_test": 703,
+            "n_train": 2718,
+            "test_positive": 355
+          },
+          {
+            "fold": 2,
+            "n_test": 720,
+            "n_train": 2701,
+            "test_positive": 371
+          },
+          {
+            "fold": 3,
+            "n_test": 657,
+            "n_train": 2764,
+            "test_positive": 315
+          },
+          {
+            "fold": 4,
+            "n_test": 764,
+            "n_train": 2657,
+            "test_positive": 367
+          },
+          {
+            "fold": 5,
+            "n_test": 577,
+            "n_train": 2844,
+            "test_positive": 303
+          }
+        ],
+        "n_negative": 1710,
+        "n_positive": 1711,
+        "n_samples": 3421,
+        "n_splits": 5,
+        "split_kind": "stratified_group"
+      }
+    },
+    {
+      "feature_set": "protein_length",
+      "label_source": "metadata",
+      "metrics": {
+        "AUPRC": 0.5159012277306687,
+        "AUROC": 0.568762325646573,
+        "balanced_accuracy": 0.5819665323448892,
+        "c": 1.0,
+        "folds": [
+          {
+            "fold": 1,
+            "n_test": 703,
+            "n_train": 2718,
+            "test_positive": 355
+          },
+          {
+            "fold": 2,
+            "n_test": 720,
+            "n_train": 2701,
+            "test_positive": 371
+          },
+          {
+            "fold": 3,
+            "n_test": 657,
+            "n_train": 2764,
+            "test_positive": 315
+          },
+          {
+            "fold": 4,
+            "n_test": 764,
+            "n_train": 2657,
+            "test_positive": 367
+          },
+          {
+            "fold": 5,
+            "n_test": 577,
+            "n_train": 2844,
+            "test_positive": 303
+          }
+        ],
+        "n_negative": 1710,
+        "n_positive": 1711,
+        "n_samples": 3421,
+        "n_splits": 5,
+        "split_kind": "stratified_group"
+      }
+    },
+    {
+      "feature_set": "aa_composition",
+      "label_source": "metadata",
+      "metrics": {
+        "AUPRC": 0.5492050474784993,
+        "AUROC": 0.5671895987777743,
+        "balanced_accuracy": 0.5533421514042265,
+        "c": 1.0,
+        "folds": [
+          {
+            "fold": 1,
+            "n_test": 703,
+            "n_train": 2718,
+            "test_positive": 355
+          },
+          {
+            "fold": 2,
+            "n_test": 720,
+            "n_train": 2701,
+            "test_positive": 371
+          },
+          {
+            "fold": 3,
+            "n_test": 657,
+            "n_train": 2764,
+            "test_positive": 315
+          },
+          {
+            "fold": 4,
+            "n_test": 764,
+            "n_train": 2657,
+            "test_positive": 367
+          },
+          {
+            "fold": 5,
+            "n_test": 577,
+            "n_train": 2844,
+            "test_positive": 303
+          }
+        ],
+        "n_negative": 1710,
+        "n_positive": 1711,
+        "n_samples": 3421,
+        "n_splits": 5,
+        "split_kind": "stratified_group"
+      }
+    },
+    {
+      "feature_set": "gene_symbol_onehot",
+      "label_source": "metadata",
+      "metrics": {
+        "AUPRC": 0.48861269200954627,
+        "AUROC": 0.4803080172670132,
+        "balanced_accuracy": 0.4832167844118381,
+        "c": 1.0,
+        "folds": [
+          {
+            "fold": 1,
+            "n_test": 703,
+            "n_train": 2718,
+            "test_positive": 355
+          },
+          {
+            "fold": 2,
+            "n_test": 720,
+            "n_train": 2701,
+            "test_positive": 371
+          },
+          {
+            "fold": 3,
+            "n_test": 657,
+            "n_train": 2764,
+            "test_positive": 315
+          },
+          {
+            "fold": 4,
+            "n_test": 764,
+            "n_train": 2657,
+            "test_positive": 367
+          },
+          {
+            "fold": 5,
+            "n_test": 577,
+            "n_train": 2844,
+            "test_positive": 303
+          }
+        ],
+        "n_negative": 1710,
+        "n_positive": 1711,
+        "n_samples": 3421,
+        "n_splits": 5,
+        "split_kind": "stratified_group"
+      }
+    },
+    {
+      "feature_set": "esmc",
+      "label_source": "shuffled_metadata_labels",
+      "metrics": {
+        "AUPRC": 0.4889881633380554,
+        "AUROC": 0.4832971040498187,
+        "balanced_accuracy": 0.49167068264856567,
+        "c": 1.0,
+        "folds": [
+          {
+            "fold": 1,
+            "n_test": 702,
+            "n_train": 2719,
+            "test_positive": 341
+          },
+          {
+            "fold": 2,
+            "n_test": 712,
+            "n_train": 2709,
+            "test_positive": 358
+          },
+          {
+            "fold": 3,
+            "n_test": 703,
+            "n_train": 2718,
+            "test_positive": 353
+          },
+          {
+            "fold": 4,
+            "n_test": 679,
+            "n_train": 2742,
+            "test_positive": 329
+          },
+          {
+            "fold": 5,
+            "n_test": 625,
+            "n_train": 2796,
+            "test_positive": 330
+          }
+        ],
+        "n_negative": 1710,
+        "n_positive": 1711,
+        "n_samples": 3421,
+        "n_splits": 5,
+        "split_kind": "stratified_group"
+      }
+    }
+  ]
+}
