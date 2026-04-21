@@ -1,0 +1,117 @@
+{
+  "primary_hard_label": {
+    "rows": 1712,
+    "esmc": {
+      "AUROC": 0.6209753581098786,
+      "AUPRC": 0.6149440764785987,
+      "balanced_accuracy": 0.592873831775701
+    },
+    "protein_length": {
+      "AUROC": 0.6533,
+      "AUPRC": 0.625,
+      "balanced_accuracy": 0.6139
+    },
+    "aa_composition": {
+      "AUROC": 0.6038,
+      "AUPRC": 0.5915,
+      "balanced_accuracy": 0.5754
+    },
+    "gene_symbol_onehot": {
+      "AUROC": 0.4862,
+      "AUPRC": 0.4906,
+      "balanced_accuracy": 0.4907
+    }
+  },
+  "matched_panel": {
+    "rows": 606,
+    "unique_genes": 422,
+    "unique_windows": 216,
+    "esmc": {
+      "AUROC": 0.6112421383647799,
+      "AUPRC": 0.5868200910321464,
+      "balanced_accuracy": 0.5921776729559749
+    },
+    "protein_length": {
+      "AUROC": 0.628767033542977,
+      "AUPRC": 0.5974309723126938,
+      "balanced_accuracy": 0.5766837002096437
+    },
+    "aa_composition": {
+      "AUROC": 0.569624606918239,
+      "AUPRC": 0.5425175358998209,
+      "balanced_accuracy": 0.566791142557652
+    },
+    "gene_symbol_onehot": {
+      "AUROC": 0.46809486373165615,
+      "AUPRC": 0.45575930684939503,
+      "balanced_accuracy": 0.5
+    },
+    "exploratory_borzoi": {
+      "borzoi_mean": {
+        "AUROC": 0.5552225279524808,
+        "AUPRC": 0.5296702337577758,
+        "balanced_accuracy": 0.5390788784067087
+      },
+      "esmc_plus_borzoi_mean": {
+        "AUROC": 0.6198025856044724,
+        "AUPRC": 0.5934309914540778,
+        "balanced_accuracy": 0.5906053459119497
+      }
+    }
+  },
+  "soft_label": {
+    "rows": 3421,
+    "median_threshold": 2.624636650085449,
+    "esmc": {
+      "AUROC": 0.5894258342134315,
+      "AUPRC": 0.5813644947572428,
+      "balanced_accuracy": 0.5665038057836975
+    },
+    "protein_length": {
+      "AUROC": 0.568762325646573,
+      "AUPRC": 0.5159012277306687,
+      "balanced_accuracy": 0.5819665323448892
+    }
+  },
+  "length_controls": {
+    "esmc_length_residualized": {
+      "AUROC": 0.5984924993449209,
+      "AUPRC": 0.5926228425043205,
+      "balanced_accuracy": 0.5718457943925234
+    },
+    "esmc_by_length_quartile": [
+      {
+        "quartile": 1,
+        "rows": 429,
+        "mean_length": 363.88812255859375,
+        "AUROC": 0.5837166283371662,
+        "AUPRC": 0.748464117709809,
+        "balanced_accuracy": 0.5571192880711929
+      },
+      {
+        "quartile": 2,
+        "rows": 427,
+        "mean_length": 525.0819702148438,
+        "AUROC": 0.5865583888989008,
+        "AUPRC": 0.6793260398760819,
+        "balanced_accuracy": 0.5729072805910975
+      },
+      {
+        "quartile": 3,
+        "rows": 429,
+        "mean_length": 677.1398315429688,
+        "AUROC": 0.5924296962879639,
+        "AUPRC": 0.5059776656942538,
+        "balanced_accuracy": 0.5792125984251969
+      },
+      {
+        "quartile": 4,
+        "rows": 427,
+        "mean_length": 1104.41455078125,
+        "AUROC": 0.5848584040073402,
+        "AUPRC": 0.4334841756105128,
+        "balanced_accuracy": 0.5555720874869812
+      }
+    ]
+  }
+}
