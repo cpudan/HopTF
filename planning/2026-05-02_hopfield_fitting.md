@@ -16,6 +16,55 @@ The immediate target is not a polished model. The target is a set of small, inst
 
 ### Completed
 
+- Committed the recoverable smoke-pipeline baseline:
+  - commit: `5c0e576` (`Add Hopfield CFM smoke pipeline`)
+- Debugged and committed the leave-one endpoint metric fix:
+  - commit: `9b99e47` (`Use standardized endpoint metric for isoform holdouts`)
+  - reason: response scores are measured in control-standardized latent geometry, but the initial leave-one pass/fail check used raw PCA endpoint MSE.
+  - current behavior: leave-one reports both raw endpoint MSE and control-standardized endpoint MSE, and uses control-standardized endpoint MSE for pass/fail.
+  - added repeatable `--holdout-isoform-id` for targeted isoform debugging.
+- Verified the current repo test suite after the metric fix:
+  - `uv run pytest -q`
+  - result: `9 passed`.
+- Ran a clean current real-key smoke runner after the metric fix:
+  - command: `uv run python scripts/run_hopfield_overnight.py --outdir tmp/hopfield_fitting_metric_refactor_full --key-source auto --holdout-gene HNF4A --holdout-gene TP53 --max-holdouts-per-gene 1`
+  - report: `tmp/hopfield_fitting_metric_refactor_full/overnight_summary.md`
+  - status: `13 / 13` runner steps passed.
+  - key source: `gene_pooled_npz`
+  - trained holdout genes: `HNF4A`, `TP53`
+- Refreshed and verified a recovery bundle for the current state:
+  - `tmp/hopfield_fitting_metric_refactor_full/recovery_latest`
+  - `tmp/hopfield_fitting_metric_refactor_full/recovery_latest.tgz`
+  - `tmp/hopfield_fitting_metric_refactor_full/recovery_latest.tgz.sha256`
+- Revisited NFATC1 after the standardized-metric fix:
+  - initial apparent failure was driven by the raw PCA endpoint criterion.
+  - focused `NFATC1-7` seed-0 run passes under the response-aligned metric:
+    - raw endpoint MSE fraction of baseline: `1.2042`
+    - control-standardized endpoint MSE fraction of baseline: `0.8713`
+    - mean control-standardized endpoint L2 delta: `-96.5889`
+  - seed sweep remains stochastic: `4 / 5` seeds passed.
+  - interpretation: NFATC1 is no longer a deterministic metric-failure case, but it remains a useful low-cell robustness target.
+- Added a reusable mixed-response leave-one panel runner:
+  - script: `scripts/run_otcfm_leave_one_panel.py`
+  - default panel genes: `NFATC1`, `ZNF195`, `IKZF3`, `TP73`, `MIER1`, `SOX5`, `ZNF534`
+  - selection: one strongest responder plus one lowest-response nonresponder per gene, subject to `--min-cells`.
+  - output report: `tmp/hopfield_fitting_leave_one_panel_response_l2/otcfm_leave_one_panel.md`
+  - combined metrics: `tmp/hopfield_fitting_leave_one_panel_response_l2/otcfm_leave_one_panel_metrics.csv`
+- Ran the initial mixed-response OT-CFM leave-one panel:
+  - status: `8 / 14` holdouts passed under the current control-standardized endpoint criterion.
+  - responders: `5 / 7` passed.
+  - nonresponders: `3 / 7` passed.
+  - genes with both selected holdouts passing: `MIER1`, `ZNF534`.
+  - important debug signal: several nonresponders fail because the model over-transports them away from control, not because the raw endpoint MSE is large.
+- Added response-amplitude diagnostics to OT-CFM endpoint metrics:
+  - mean predicted control-standardized response L2.
+  - mean observed control-standardized response L2.
+  - predicted/observed response L2 ratio.
+  - These are needed for nonresponders and future deleterious-mutant checks where the expected behavior is weak or absent response.
+- Verified tests after adding the panel runner and response-amplitude metrics:
+  - `uv run pytest -q`
+  - result: `10 passed`.
+
 - Implemented the overnight smoke-pipeline scripts:
   - `scripts/inspect_hopfield_inputs.py`
   - `scripts/prepare_alphagenome_keys.py`
@@ -27,7 +76,7 @@ The immediate target is not a polished model. The target is a set of small, inst
   - `scripts/run_hopfield_overnight.py`
   - shared helpers in `scripts/hopfield_fitting_common.py`
 - Added focused smoke tests in `tests/test_hopfield_fitting_smoke.py`.
-- Verified the repo test suite: `8 passed`.
+- Verified the repo test suite before the metric refactor: `8 passed`.
 - Ran the main overnight smoke runner successfully:
   - report: `tmp/hopfield_fitting/overnight_summary.md`
   - status: `10 / 10` runner steps passed.
@@ -104,24 +153,28 @@ The immediate target is not a polished model. The target is a set of small, inst
 - Re-ran the updated real-key runner with controlled reporting included:
   - report: `tmp/hopfield_fitting_flight/overnight_summary.md`
   - status: `13 / 13` runner steps passed.
-- Probed NFATC1 as a trained leave-one-isoform CFM check:
+- Probed NFATC1 as a trained leave-one-isoform CFM check before the standardized-metric refactor:
   - output: `tmp/hopfield_fitting_nfatc1_probe/otcfm_leave_one_NFATC1_summary.json`
   - status: failed strict baseline-beating criterion, endpoint MSE fraction of baseline `1.1854`
-  - interpretation: useful failing case for debugging, not ready as a required green-path runner step.
+  - interpretation after debugging: this was a raw-PCA-metric failure, not a clear response-geometry failure.
 
 ### Partially Completed
 
 - AlphaGenome key integration works, including real 3072-d keys and chr1 filtering. The runner can now use real keys directly. Synthetic mode remains available for minimal smoke tests when the downloaded archive is absent.
 - TorchCFM integration is real and passing smoke tests, but the current model uses a simple MLP conditioning path over PCA centroid endpoints. It is not yet a production-quality cell-level transport model.
-- Held-out isoform evaluation exists. Trained one-heldout CFM smoke checks pass for `HNF4A` and `TP53`; `NFATC1` currently fails and should be treated as a debugging target. The broader mixed-response TF panel still needs systematic runs.
+- Held-out isoform evaluation exists. Trained one-heldout CFM smoke checks pass for `HNF4A` and `TP53`; focused `NFATC1-7` passes under the response-aligned metric but remains seed-sensitive. The first broader mixed-response TF panel has run and now gives a concrete failure map.
 - Mutation sequence generation and coordinate validation exist, but mutant ESM-C embeddings have not been regenerated because no local ESM-C model snapshot/weights were present.
 - The response artifact logic was checked and reproduced. Grouped ridge and controlled matched-strata reports now include length/cell/ORF, sequence, Hopfield-query, and shuffled controls. Downsampling and uncertainty weights are not yet integrated into every training/evaluation report.
 
 ### Remaining
 
 - Extend the unified and controlled model-comparison reports into a single combined table that includes trained Hopfield+OT-CFM heldout metrics on the same split definitions.
-- Expand leave-one-isoform training/evaluation beyond the current passing `HNF4A` and `TP53` smoke checks to `ZNF195`, `IKZF3`, `TP73`, `MIER1`, `SOX5`, `ZNF534`, and other mixed-response TF groups.
-- Debug `NFATC1`, which currently fails the strict trained leave-one-isoform baseline-beating criterion.
+- Extend the mixed-response leave-one panel from a first pass into a robust benchmark:
+  - repeat with multiple seeds,
+  - increase training budget for fragile low-cell responders,
+  - add label-aware nonresponder criteria based on response-amplitude rather than only endpoint improvement over control,
+  - add more than one responder/nonresponder per gene where available.
+- Continue debugging `NFATC1` as a seed-sensitive, low-cell robustness target rather than a deterministic metric failure.
 - Add length-matched and cell-count-matched holdout splits.
 - Add explicit covariates or controls for `log1p(n_cells)`, `protein_aa_length`, `orf_nt_length`, batch/library, and measurement uncertainty.
 - Regenerate ESM-C embeddings for verified mutant sequences once the local ESM-C model snapshot/weights are available.

@@ -9,6 +9,7 @@ import pytest
 
 from scripts.hopfield_fitting_common import candidate_isoform_groups, load_vocab, normalize_rows, spearman
 from scripts.make_mutant_esmc_embeddings import parse_mutation
+from scripts.run_otcfm_leave_one_panel import select_panel_holdouts
 from scripts.train_otcfm_sequence_conditioned import endpoint_metrics
 
 
@@ -67,3 +68,21 @@ def test_endpoint_metrics_control_standardized_geometry_can_differ_from_raw_mse(
 
     assert metrics["endpoint_mse_fraction_of_baseline"] > 1.0
     assert metrics["control_standardized_endpoint_mse_fraction_of_baseline"] < 1.0
+    assert metrics["mean_predicted_control_standardized_response_l2"] > 0.0
+    assert metrics["mean_observed_control_standardized_response_l2"] > 0.0
+
+
+def test_select_panel_holdouts_uses_strong_responder_and_low_nonresponder() -> None:
+    df = pd.DataFrame(
+        {
+            "gene_symbol": ["A", "A", "A", "A", "B"],
+            "isoform_id": ["A-low", "A-high", "A-non-high", "A-non-low", "B-high"],
+            "label_status": ["responder", "responder", "nonresponder", "nonresponder", "responder"],
+            "n_cells": [10, 10, 10, 10, 10],
+            "response_score": [5.0, 20.0, 8.0, 2.0, 100.0],
+        }
+    )
+
+    selected = select_panel_holdouts(df, "A", min_cells=5, max_per_label=1)
+
+    assert selected["isoform_id"].tolist() == ["A-high", "A-non-low"]

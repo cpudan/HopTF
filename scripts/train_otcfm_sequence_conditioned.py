@@ -118,6 +118,12 @@ def endpoint_metrics(
     baseline_control_standardized_endpoint_mse = float(np.mean(((baseline - target) / control_sd_safe) ** 2))
     control_standardized_endpoint_l2 = np.linalg.norm((pred - target) / control_sd_safe, axis=1)
     baseline_control_standardized_endpoint_l2 = np.linalg.norm((baseline - target) / control_sd_safe, axis=1)
+    predicted_control_standardized_response_l2 = np.linalg.norm((pred - baseline) / control_sd_safe, axis=1)
+    observed_control_standardized_response_l2 = np.linalg.norm((target - baseline) / control_sd_safe, axis=1)
+    response_l2_ratio = float(
+        np.mean(predicted_control_standardized_response_l2)
+        / max(float(np.mean(observed_control_standardized_response_l2)), 1.0e-6)
+    )
     return {
         "endpoint_mse": endpoint_mse,
         "baseline_endpoint_mse": baseline_endpoint_mse,
@@ -134,6 +140,12 @@ def endpoint_metrics(
         "mean_control_standardized_endpoint_l2_delta": float(
             np.mean(control_standardized_endpoint_l2 - baseline_control_standardized_endpoint_l2)
         ),
+        "mean_predicted_control_standardized_response_l2": float(np.mean(predicted_control_standardized_response_l2)),
+        "mean_observed_control_standardized_response_l2": float(np.mean(observed_control_standardized_response_l2)),
+        "mean_control_standardized_response_l2_delta": float(
+            np.mean(predicted_control_standardized_response_l2 - observed_control_standardized_response_l2)
+        ),
+        "mean_control_standardized_response_l2_ratio": response_l2_ratio,
     }
 
 
