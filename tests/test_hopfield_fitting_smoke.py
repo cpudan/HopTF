@@ -9,6 +9,7 @@ import pytest
 
 from scripts.hopfield_fitting_common import candidate_isoform_groups, load_vocab, normalize_rows, spearman
 from scripts.make_mutant_esmc_embeddings import parse_mutation
+from scripts.train_otcfm_sequence_conditioned import endpoint_metrics
 
 
 def test_load_vocab_list_and_dict(tmp_path: Path) -> None:
@@ -54,3 +55,15 @@ def test_parse_mutation() -> None:
     assert parse_mutation("R248Q") == ("R", 248, "Q")
     with pytest.raises(ValueError):
         parse_mutation("bad")
+
+
+def test_endpoint_metrics_control_standardized_geometry_can_differ_from_raw_mse() -> None:
+    target = np.asarray([[1.0, 1.0]], dtype=np.float32)
+    control_mean = np.asarray([0.0, 0.0], dtype=np.float32)
+    control_sd = np.asarray([10.0, 0.1], dtype=np.float32)
+    pred = np.asarray([[3.0, 0.2]], dtype=np.float32)
+
+    metrics = endpoint_metrics(pred=pred, target=target, control_mean=control_mean, control_sd=control_sd)
+
+    assert metrics["endpoint_mse_fraction_of_baseline"] > 1.0
+    assert metrics["control_standardized_endpoint_mse_fraction_of_baseline"] < 1.0

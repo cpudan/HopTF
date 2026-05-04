@@ -27,6 +27,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--latents", type=Path, default=DEFAULT_OUTDIR / "perturbation_latents.npz")
     parser.add_argument("--outdir", type=Path, default=DEFAULT_OUTDIR)
     parser.add_argument("--holdout-gene", default="HNF4A")
+    parser.add_argument(
+        "--holdout-isoform-id",
+        action="append",
+        default=None,
+        help="Specific isoform_id, perturbation_id, or isoform_embedding_id to hold out. Repeatable.",
+    )
     parser.add_argument("--max-holdouts", type=int, default=2)
     parser.add_argument("--max-train-rows", type=int, default=512)
     parser.add_argument("--min-cells", type=int, default=5)
@@ -95,6 +101,40 @@ def standardize(train: np.ndarray, values: np.ndarray) -> tuple[np.ndarray, np.n
     sd = train.std(axis=0, keepdims=True).astype(np.float32)
     sd = np.maximum(sd, 1.0e-4)
     return ((values - mean) / sd).astype(np.float32), mean, sd
+
+
+def endpoint_metrics(
+    *,
+    pred: np.ndarray,
+    target: np.ndarray,
+    control_mean: np.ndarray,
+    control_sd: np.ndarray,
+) -> dict[str, float | None]:
+    baseline = np.repeat(np.asarray(control_mean, dtype=np.float32).reshape(1, -1), repeats=int(target.shape[0]), axis=0)
+    control_sd_safe = np.maximum(np.asarray(control_sd, dtype=np.float32).reshape(1, -1), 1.0e-6)
+    endpoint_mse = float(np.mean((pred - target) ** 2))
+    baseline_endpoint_mse = float(np.mean((baseline - target) ** 2))
+    control_standardized_endpoint_mse = float(np.mean(((pred - target) / control_sd_safe) ** 2))
+    baseline_control_standardized_endpoint_mse = float(np.mean(((baseline - target) / control_sd_safe) ** 2))
+    control_standardized_endpoint_l2 = np.linalg.norm((pred - target) / control_sd_safe, axis=1)
+    baseline_control_standardized_endpoint_l2 = np.linalg.norm((baseline - target) / control_sd_safe, axis=1)
+    return {
+        "endpoint_mse": endpoint_mse,
+        "baseline_endpoint_mse": baseline_endpoint_mse,
+        "endpoint_mse_fraction_of_baseline": endpoint_mse / baseline_endpoint_mse if baseline_endpoint_mse > 0 else None,
+        "control_standardized_endpoint_mse": control_standardized_endpoint_mse,
+        "baseline_control_standardized_endpoint_mse": baseline_control_standardized_endpoint_mse,
+        "control_standardized_endpoint_mse_fraction_of_baseline": (
+            control_standardized_endpoint_mse / baseline_control_standardized_endpoint_mse
+            if baseline_control_standardized_endpoint_mse > 0
+            else None
+        ),
+        "mean_control_standardized_endpoint_l2": float(np.mean(control_standardized_endpoint_l2)),
+        "mean_baseline_control_standardized_endpoint_l2": float(np.mean(baseline_control_standardized_endpoint_l2)),
+        "mean_control_standardized_endpoint_l2_delta": float(
+            np.mean(control_standardized_endpoint_l2 - baseline_control_standardized_endpoint_l2)
+        ),
+    }
 
 
 def load_real_dataset(args: argparse.Namespace) -> tuple[np.ndarray, np.ndarray, pd.DataFrame, np.ndarray, np.ndarray]:
@@ -241,8 +281,6 @@ def train_one(
             x = x + model(t, x, eval_esm) / float(args.integration_steps)
     pred_std = x.detach().cpu().numpy()
     pred = pred_std * x_sd + x_mean
-    endpoint_mse = float(np.mean((pred - x1[eval_idx]) ** 2))
-    baseline_endpoint_mse = float(np.mean((control_mean.reshape(1, -1) - x1[eval_idx]) ** 2))
     metrics = {
         "name": name,
         "device": str(device),
@@ -255,9 +293,7 @@ def train_one(
         "steps": int(args.steps),
         "history": history,
         "train_baseline_standardized_mse": baseline,
-        "endpoint_mse": endpoint_mse,
-        "baseline_endpoint_mse": baseline_endpoint_mse,
-        "endpoint_mse_fraction_of_baseline": endpoint_mse / baseline_endpoint_mse if baseline_endpoint_mse > 0 else None,
+        **endpoint_metrics(pred=pred, target=x1[eval_idx], control_mean=control_mean, control_sd=control_sd),
     }
     ckpt_path = ensure_dir(args.outdir) / f"otcfm_{name}.pt"
     torch.save(
@@ -347,12 +383,32 @@ def main() -> None:
         return
 
     gene_mask = rows["gene_symbol"].astype(str).to_numpy() == str(args.holdout_gene)
-    holdout_candidates = np.flatnonzero(gene_mask)
+    if args.holdout_isoform_id:
+        requested = {str(value) for value in args.holdout_isoform_id}
+        id_mask = (
+            rows["isoform_id"].astype(str).isin(requested)
+            | rows["perturbation_id"].astype(str).isin(requested)
+            | rows["isoform_embedding_id"].astype(str).isin(requested)
+        ).to_numpy()
+        holdout_candidates = np.flatnonzero(gene_mask & id_mask)
+        missing_requested = sorted(
+            requested
+            - set(rows.loc[gene_mask & id_mask, "isoform_id"].astype(str))
+            - set(rows.loc[gene_mask & id_mask, "perturbation_id"].astype(str))
+            - set(rows.loc[gene_mask & id_mask, "isoform_embedding_id"].astype(str))
+        )
+        if missing_requested:
+            raise ValueError(f"requested holdouts not found for {args.holdout_gene}: {missing_requested}")
+    else:
+        holdout_candidates = np.flatnonzero(gene_mask)
     if holdout_candidates.size == 0:
         raise ValueError(f"no rows found for holdout gene {args.holdout_gene}")
-    scores = pd.to_numeric(rows.iloc[holdout_candidates]["response_score"], errors="coerce").fillna(-np.inf).to_numpy()
-    order = np.argsort(-scores)
-    holdouts = holdout_candidates[order[: int(args.max_holdouts)]]
+    if args.holdout_isoform_id:
+        holdouts = holdout_candidates[: int(args.max_holdouts)]
+    else:
+        scores = pd.to_numeric(rows.iloc[holdout_candidates]["response_score"], errors="coerce").fillna(-np.inf).to_numpy()
+        order = np.argsort(-scores)
+        holdouts = holdout_candidates[order[: int(args.max_holdouts)]]
     records = []
     all_predictions = []
     for run_idx, holdout in enumerate(holdouts):
@@ -377,7 +433,11 @@ def main() -> None:
         row = rows.iloc[int(holdout)].to_dict()
         row.update(metrics)
         row["holdout_index"] = int(holdout)
-        row["passed"] = bool(metrics["endpoint_mse"] < metrics["baseline_endpoint_mse"])
+        row["passed_raw_endpoint_baseline"] = bool(metrics["endpoint_mse"] < metrics["baseline_endpoint_mse"])
+        row["passed_control_standardized_endpoint_baseline"] = bool(
+            metrics["control_standardized_endpoint_mse"] < metrics["baseline_control_standardized_endpoint_mse"]
+        )
+        row["passed"] = row["passed_control_standardized_endpoint_baseline"]
         records.append(row)
         all_predictions.append(pred[0])
 
@@ -396,7 +456,17 @@ def main() -> None:
         "holdout_gene": args.holdout_gene,
         "n_holdouts": int(len(records)),
         "n_passed": int(results["passed"].sum()),
+        "n_passed_raw_endpoint_baseline": int(results["passed_raw_endpoint_baseline"].sum()),
+        "n_passed_control_standardized_endpoint_baseline": int(
+            results["passed_control_standardized_endpoint_baseline"].sum()
+        ),
         "mean_endpoint_mse_fraction_of_baseline": float(results["endpoint_mse_fraction_of_baseline"].mean()),
+        "mean_control_standardized_endpoint_mse_fraction_of_baseline": float(
+            results["control_standardized_endpoint_mse_fraction_of_baseline"].mean()
+        ),
+        "mean_control_standardized_endpoint_l2_delta": float(
+            results["mean_control_standardized_endpoint_l2_delta"].mean()
+        ),
         "metrics_csv": results_path,
         "passed": bool(results["passed"].all()),
     }
