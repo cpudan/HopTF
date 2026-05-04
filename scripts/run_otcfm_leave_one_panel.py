@@ -11,6 +11,7 @@ import time
 from pathlib import Path
 from typing import Any
 
+import numpy as np
 import pandas as pd
 
 SCRIPT_DIR = Path(__file__).resolve().parent
@@ -36,6 +37,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--max-train-rows", type=int, default=256)
     parser.add_argument("--steps", type=int, default=500)
     parser.add_argument("--seed", type=int, default=0)
+    parser.add_argument("--n-seeds", type=int, default=1)
+    parser.add_argument("--aggregate-pass-rate", type=float, default=0.8)
+    parser.add_argument("--nonresponder-response-ratio-threshold", type=float, default=1.5)
     parser.add_argument("--python", default=sys.executable)
     return parser.parse_args()
 
@@ -66,10 +70,21 @@ def select_panel_holdouts(
     return rows.loc[selected].copy().reset_index(drop=True)
 
 
-def run_gene(args: argparse.Namespace, gene: str, holdouts: pd.DataFrame) -> dict[str, Any]:
-    gene_outdir = ensure_dir(args.outdir / gene)
+def label_aware_pass(row: pd.Series | dict[str, Any], *, nonresponder_response_ratio_threshold: float) -> bool:
+    label = str(row.get("label_status", ""))
+    endpoint_fraction = pd.to_numeric(row.get("control_standardized_endpoint_mse_fraction_of_baseline"), errors="coerce")
+    response_ratio = pd.to_numeric(row.get("mean_control_standardized_response_l2_ratio"), errors="coerce")
+    if label == "nonresponder":
+        return bool(np.isfinite(response_ratio) and response_ratio <= float(nonresponder_response_ratio_threshold))
+    if label == "responder":
+        return bool(np.isfinite(endpoint_fraction) and endpoint_fraction < 1.0)
+    return bool(row.get("passed", False))
+
+
+def run_gene(args: argparse.Namespace, gene: str, holdouts: pd.DataFrame, *, seed_index: int, seed: int) -> dict[str, Any]:
+    gene_outdir = ensure_dir(args.outdir / f"seed_{seed:03d}" / gene)
     log_dir = ensure_dir(args.outdir / "logs")
-    log_path = log_dir / f"{gene}.log"
+    log_path = log_dir / f"{gene}_seed_{seed:03d}.log"
     ids = [str(value) for value in holdouts["isoform_id"]]
     command = [
         args.python,
@@ -97,7 +112,7 @@ def run_gene(args: argparse.Namespace, gene: str, holdouts: pd.DataFrame) -> dic
         "--steps",
         str(args.steps),
         "--seed",
-        str(args.seed),
+        str(seed),
     ]
     for isoform_id in ids:
         command.extend(["--holdout-isoform-id", isoform_id])
@@ -109,6 +124,8 @@ def run_gene(args: argparse.Namespace, gene: str, holdouts: pd.DataFrame) -> dic
         proc = subprocess.run(command, cwd=REPO_ROOT, stdout=handle, stderr=subprocess.STDOUT, text=True)
     return {
         "gene": gene,
+        "seed_index": int(seed_index),
+        "seed": int(seed),
         "isoform_ids": ids,
         "returncode": int(proc.returncode),
         "seconds": float(time.time() - started),
@@ -116,6 +133,45 @@ def run_gene(args: argparse.Namespace, gene: str, holdouts: pd.DataFrame) -> dic
         "metrics_csv": str(gene_outdir / f"otcfm_leave_one_{gene}_metrics.csv"),
         "summary_json": str(gene_outdir / f"otcfm_leave_one_{gene}_summary.json"),
     }
+
+
+def summarize_by_isoform(metrics: pd.DataFrame, *, aggregate_pass_rate: float) -> pd.DataFrame:
+    if metrics.empty:
+        return pd.DataFrame()
+    rows = []
+    id_columns = ["gene_symbol", "isoform_id", "label_status"]
+    optional_columns = ["n_cells", "response_score", "protein_aa_length"]
+    for keys, group in metrics.groupby(id_columns, dropna=False):
+        row = dict(zip(id_columns, keys, strict=True))
+        for column in optional_columns:
+            if column in group.columns:
+                row[column] = group[column].iloc[0]
+        row.update(
+            {
+                "n_seed_runs": int(group.shape[0]),
+                "endpoint_pass_rate": float(group["passed"].astype(bool).mean()) if "passed" in group else np.nan,
+                "label_aware_pass_rate": (
+                    float(group["label_aware_pass"].astype(bool).mean()) if "label_aware_pass" in group else np.nan
+                ),
+                "stable_label_aware_pass": (
+                    bool(group["label_aware_pass"].astype(bool).mean() >= float(aggregate_pass_rate))
+                    if "label_aware_pass" in group
+                    else False
+                ),
+            }
+        )
+        for column in [
+            "control_standardized_endpoint_mse_fraction_of_baseline",
+            "mean_control_standardized_endpoint_l2_delta",
+            "mean_control_standardized_response_l2_ratio",
+            "mean_predicted_control_standardized_response_l2",
+            "mean_observed_control_standardized_response_l2",
+        ]:
+            if column in group.columns:
+                row[f"{column}_mean"] = float(pd.to_numeric(group[column], errors="coerce").mean())
+                row[f"{column}_sd"] = float(pd.to_numeric(group[column], errors="coerce").std(ddof=0))
+        rows.append(row)
+    return pd.DataFrame(rows).sort_values(["stable_label_aware_pass", "label_aware_pass_rate"], ascending=[True, True])
 
 
 def compact_markdown_table(df: pd.DataFrame, columns: list[str]) -> list[str]:
@@ -142,6 +198,7 @@ def main() -> None:
     target_rows = []
     run_rows = []
     metric_frames = []
+    holdouts_by_gene = {}
     for gene in genes:
         holdouts = select_panel_holdouts(
             metadata,
@@ -152,44 +209,77 @@ def main() -> None:
         if holdouts.empty:
             run_rows.append({"gene": gene, "returncode": None, "seconds": 0.0, "log": None, "metrics_csv": None, "summary_json": None})
             continue
+        holdouts_by_gene[gene] = holdouts
         keep_cols = ["gene_symbol", "isoform_id", "label_status", "n_cells", "response_score", "protein_aa_length"]
         target_rows.extend(holdouts.loc[:, [column for column in keep_cols if column in holdouts.columns]].to_dict(orient="records"))
-        run = run_gene(args, gene, holdouts)
-        run_rows.append(run)
-        metrics_path = Path(str(run["metrics_csv"]))
-        if metrics_path.exists():
-            metrics = pd.read_csv(metrics_path)
-            metrics["panel_gene"] = gene
-            metrics["panel_returncode"] = run["returncode"]
-            metrics["panel_log"] = run["log"]
-            metric_frames.append(metrics)
+    for seed_index in range(int(args.n_seeds)):
+        seed = int(args.seed) + seed_index
+        for gene, holdouts in holdouts_by_gene.items():
+            run = run_gene(args, gene, holdouts, seed_index=seed_index, seed=seed)
+            run_rows.append(run)
+            metrics_path = Path(str(run["metrics_csv"]))
+            if metrics_path.exists():
+                metrics = pd.read_csv(metrics_path)
+                metrics["panel_gene"] = gene
+                metrics["panel_seed_index"] = int(seed_index)
+                metrics["panel_seed"] = int(seed)
+                metrics["panel_returncode"] = run["returncode"]
+                metrics["panel_log"] = run["log"]
+                metrics["label_aware_pass"] = metrics.apply(
+                    label_aware_pass,
+                    axis=1,
+                    nonresponder_response_ratio_threshold=float(args.nonresponder_response_ratio_threshold),
+                )
+                metric_frames.append(metrics)
 
     targets = pd.DataFrame(target_rows)
     runs = pd.DataFrame(run_rows)
     metrics = pd.concat(metric_frames, ignore_index=True) if metric_frames else pd.DataFrame()
+    aggregate = summarize_by_isoform(metrics, aggregate_pass_rate=float(args.aggregate_pass_rate))
     targets_path = outdir / "otcfm_leave_one_panel_targets.csv"
     runs_path = outdir / "otcfm_leave_one_panel_runs.csv"
     metrics_path = outdir / "otcfm_leave_one_panel_metrics.csv"
+    aggregate_path = outdir / "otcfm_leave_one_panel_aggregate.csv"
     report_path = outdir / "otcfm_leave_one_panel.md"
     targets.to_csv(targets_path, index=False)
     runs.to_csv(runs_path, index=False)
     metrics.to_csv(metrics_path, index=False)
+    aggregate.to_csv(aggregate_path, index=False)
 
     summary = {
         "genes": genes,
         "min_cells": int(args.min_cells),
         "max_per_label": int(args.max_per_label),
         "steps": int(args.steps),
+        "seed_start": int(args.seed),
+        "n_seeds": int(args.n_seeds),
         "max_train_rows": int(args.max_train_rows),
+        "aggregate_pass_rate": float(args.aggregate_pass_rate),
+        "nonresponder_response_ratio_threshold": float(args.nonresponder_response_ratio_threshold),
         "n_genes": int(len(genes)),
-        "n_genes_with_targets": int(runs["metrics_csv"].notna().sum()) if not runs.empty else 0,
+        "n_genes_with_targets": int(len(holdouts_by_gene)),
         "n_holdouts": int(metrics.shape[0]),
         "n_passed": int(metrics["passed"].sum()) if "passed" in metrics else 0,
+        "n_label_aware_passed": int(metrics["label_aware_pass"].sum()) if "label_aware_pass" in metrics else 0,
         "n_failed": int((~metrics["passed"].astype(bool)).sum()) if "passed" in metrics and not metrics.empty else 0,
+        "n_label_aware_failed": (
+            int((~metrics["label_aware_pass"].astype(bool)).sum()) if "label_aware_pass" in metrics and not metrics.empty else 0
+        ),
+        "n_isoforms": int(aggregate.shape[0]),
+        "n_stable_label_aware_passed": (
+            int(aggregate["stable_label_aware_pass"].sum()) if "stable_label_aware_pass" in aggregate else 0
+        ),
         "passed_all": bool(metrics["passed"].all()) if "passed" in metrics and not metrics.empty else False,
+        "label_aware_passed_all": (
+            bool(metrics["label_aware_pass"].all()) if "label_aware_pass" in metrics and not metrics.empty else False
+        ),
+        "stable_label_aware_passed_all": (
+            bool(aggregate["stable_label_aware_pass"].all()) if "stable_label_aware_pass" in aggregate and not aggregate.empty else False
+        ),
         "targets_csv": str(targets_path),
         "runs_csv": str(runs_path),
         "metrics_csv": str(metrics_path),
+        "aggregate_csv": str(aggregate_path),
         "report_md": str(report_path),
     }
     write_json(outdir / "otcfm_leave_one_panel_summary.json", summary)
@@ -197,16 +287,34 @@ def main() -> None:
     lines = [
         "# OT-CFM Leave-One Isoform Panel",
         "",
-        f"Status: {'PASS' if summary['passed_all'] else 'NEEDS DEBUG'}",
-        f"Holdouts: {summary['n_passed']} / {summary['n_holdouts']} passed",
+        f"Status: {'PASS' if summary['stable_label_aware_passed_all'] else 'NEEDS DEBUG'}",
+        f"Endpoint criterion: {summary['n_passed']} / {summary['n_holdouts']} seed-level holdouts passed",
+        f"Label-aware criterion: {summary['n_label_aware_passed']} / {summary['n_holdouts']} seed-level holdouts passed",
+        f"Stable label-aware isoforms: {summary['n_stable_label_aware_passed']} / {summary['n_isoforms']} at pass-rate >= {summary['aggregate_pass_rate']}",
         f"Genes: {', '.join(genes)}",
         "",
         "## Targets",
         "",
     ]
     lines.extend(compact_markdown_table(targets, ["gene_symbol", "isoform_id", "label_status", "n_cells", "response_score", "protein_aa_length"]))
-    lines.extend(["", "## Metrics", ""])
+    lines.extend(["", "## Aggregate", ""])
+    aggregate_columns = [
+        "gene_symbol",
+        "isoform_id",
+        "label_status",
+        "n_cells",
+        "response_score",
+        "n_seed_runs",
+        "endpoint_pass_rate",
+        "label_aware_pass_rate",
+        "stable_label_aware_pass",
+        "control_standardized_endpoint_mse_fraction_of_baseline_mean",
+        "mean_control_standardized_response_l2_ratio_mean",
+    ]
+    lines.extend(compact_markdown_table(aggregate, [column for column in aggregate_columns if column in aggregate.columns]))
+    lines.extend(["", "## Seed-Level Metrics", ""])
     metric_columns = [
+        "panel_seed",
         "gene_symbol",
         "isoform_id",
         "label_status",
@@ -219,14 +327,18 @@ def main() -> None:
         "mean_observed_control_standardized_response_l2",
         "mean_control_standardized_response_l2_ratio",
         "passed",
+        "label_aware_pass",
     ]
     lines.extend(compact_markdown_table(metrics, [column for column in metric_columns if column in metrics.columns]))
     lines.extend(["", "## Runs", ""])
-    lines.extend(compact_markdown_table(runs, ["gene", "returncode", "seconds", "log", "metrics_csv"]))
+    lines.extend(compact_markdown_table(runs, ["gene", "seed", "returncode", "seconds", "log", "metrics_csv"]))
     report_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
-    print(f"wrote {outdir / 'otcfm_leave_one_panel_summary.json'} {report_path}; passed_all={summary['passed_all']}")
-    if not summary["passed_all"]:
+    print(
+        f"wrote {outdir / 'otcfm_leave_one_panel_summary.json'} {report_path}; "
+        f"stable_label_aware_passed_all={summary['stable_label_aware_passed_all']}"
+    )
+    if not summary["stable_label_aware_passed_all"]:
         raise SystemExit(2)
 
 

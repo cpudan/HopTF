@@ -64,6 +64,33 @@ The immediate target is not a polished model. The target is a set of small, inst
 - Verified tests after adding the panel runner and response-amplitude metrics:
   - `uv run pytest -q`
   - result: `10 passed`.
+- Extended the mixed-response panel runner with seed replication and label-aware pass criteria:
+  - `--n-seeds`
+  - `--aggregate-pass-rate`
+  - `--nonresponder-response-ratio-threshold`
+  - seed-level metrics, per-isoform aggregate metrics, and stable pass-rate flags.
+  - responder criterion: control-standardized endpoint MSE fraction below `1.0`.
+  - nonresponder criterion: predicted/observed response L2 ratio below the configured threshold, currently `1.5`.
+- Ran a 5-seed label-aware panel:
+  - command output directory: `tmp/hopfield_fitting_leave_one_panel_5seed_label_aware`
+  - endpoint criterion: `37 / 70` seed-level holdouts passed.
+  - label-aware criterion: `39 / 70` seed-level holdouts passed.
+  - stable label-aware isoforms: `6 / 14` at pass-rate `>= 0.8`.
+  - stable passing isoforms: `NFATC1-5`, `TP73-1`, `IKZF3-1`, `MIER1-8`, `SOX5-3`, `ZNF534-1`.
+  - hard or unstable failures: `IKZF3-5`, `SOX5-1`, `TP73-2`, `MIER1-7`, `ZNF195-6`, `ZNF534-4`, `NFATC1-8`, `ZNF195-3`.
+- Ran a higher-budget 3-seed sensitivity panel:
+  - command output directory: `tmp/hopfield_fitting_leave_one_panel_3seed_high_budget`
+  - settings: `--steps 1000`, `--max-train-rows 512`, `--n-seeds 3`, `--aggregate-pass-rate 0.67`.
+  - endpoint criterion: `25 / 42` seed-level holdouts passed.
+  - label-aware criterion: `27 / 42` seed-level holdouts passed.
+  - stable label-aware isoforms: `7 / 14` at pass-rate `>= 0.67`.
+  - improved to stable under higher budget: `MIER1-7`, `NFATC1-8`.
+  - remained hard failures: `IKZF3-5`, `SOX5-1`, `TP73-2`.
+  - remained unstable or worsened: `ZNF195-3`, `ZNF195-6`, `ZNF534-4`, `TP73-1`.
+  - interpretation: the panel is exposing both training-budget sensitivity and real calibration/modeling failures; a higher budget alone is not sufficient.
+- Verified tests after seed aggregation and label-aware panel updates:
+  - `uv run pytest -q`
+  - result: `12 passed`.
 
 - Implemented the overnight smoke-pipeline scripts:
   - `scripts/inspect_hopfield_inputs.py`
@@ -170,10 +197,14 @@ The immediate target is not a polished model. The target is a set of small, inst
 
 - Extend the unified and controlled model-comparison reports into a single combined table that includes trained Hopfield+OT-CFM heldout metrics on the same split definitions.
 - Extend the mixed-response leave-one panel from a first pass into a robust benchmark:
-  - repeat with multiple seeds,
-  - increase training budget for fragile low-cell responders,
-  - add label-aware nonresponder criteria based on response-amplitude rather than only endpoint improvement over control,
+  - add calibration/regularization to reduce nonresponder over-transport,
+  - add explicit failure categories in the report for hard failures, seed-sensitive cases, and training-budget-rescued cases,
   - add more than one responder/nonresponder per gene where available.
+- Investigate the hard failures from the current panel:
+  - `IKZF3-5` responder: fails in both default and higher-budget runs.
+  - `SOX5-1` nonresponder: strongly over-transported away from control.
+  - `TP73-2` nonresponder: consistently over-transported away from control.
+  - `ZNF195-3` responder: unstable at default budget and worse at higher budget.
 - Continue debugging `NFATC1` as a seed-sensitive, low-cell robustness target rather than a deterministic metric failure.
 - Add length-matched and cell-count-matched holdout splits.
 - Add explicit covariates or controls for `log1p(n_cells)`, `protein_aa_length`, `orf_nt_length`, batch/library, and measurement uncertainty.
