@@ -91,6 +91,45 @@ The immediate target is not a polished model. The target is a set of small, inst
 - Verified tests after seed aggregation and label-aware panel updates:
   - `uv run pytest -q`
   - result: `12 passed`.
+- Added optional OT-CFM endpoint calibration losses:
+  - `--endpoint-loss-weight`
+  - `--response-amplitude-loss-weight`
+  - `--endpoint-loss-steps`
+  - `--endpoint-loss-interval`
+  - Default behavior remains unchanged unless these flags are set.
+- Added panel failure categories and sibling-label support counts:
+  - `stable_pass`
+  - `seed_sensitive`
+  - `responder_endpoint_failure`
+  - `overtransported_nonresponder`
+  - `unsupported_nonresponder_sibling`
+  - sibling responder/nonresponder/ambiguous counts are now reported per held-out isoform.
+- Ran a calibrated 3-seed mixed-response panel:
+  - output directory: `tmp/hopfield_fitting_leave_one_panel_3seed_calibrated`
+  - settings: `--steps 700`, `--max-train-rows 512`, `--n-seeds 3`, `--endpoint-loss-weight 0.1`, `--response-amplitude-loss-weight 0.01`.
+  - endpoint criterion: `24 / 42` seed-level holdouts passed.
+  - label-aware criterion: `30 / 42` seed-level holdouts passed.
+  - stable label-aware isoforms: `8 / 14` at pass-rate `>= 0.67`.
+  - failure categories: `8` stable passes, `4` seed-sensitive cases, `1` responder endpoint failure, and `1` unsupported nonresponder sibling case.
+  - remaining hard responder endpoint failure: `IKZF3-5`.
+  - remaining unsupported nonresponder sibling: `SOX5-1`.
+- Added frozen mutant endpoint prediction scaffold:
+  - script: `scripts/evaluate_mutant_endpoint_predictions.py`
+  - if mutant ESM-C embeddings exist, predicts WT vs mutant endpoints through a frozen OT-CFM checkpoint.
+  - if embeddings are absent, writes a structured `blocked` report and exits successfully unless `--strict` is set.
+- Added mutant endpoint prediction to the overnight runner:
+  - new step: `mutant_endpoint_predictions`
+  - current status: blocked by missing `mutant_esmc_embeddings.npy` and `mutant_esmc_vocab.json`, as expected.
+- Re-ran the full real-key smoke runner after adding mutant endpoint reporting:
+  - command: `uv run python scripts/run_hopfield_overnight.py --outdir tmp/hopfield_fitting_yolo_full_rerun --key-source auto --holdout-gene HNF4A --holdout-gene TP53 --max-holdouts-per-gene 1`
+  - report: `tmp/hopfield_fitting_yolo_full_rerun/overnight_summary.md`
+  - status: `14 / 14` runner steps passed.
+- Added a combined execution status report:
+  - script: `scripts/compile_hoptf_status_report.py`
+  - report: `tmp/hopfield_fitting_yolo_status_report.md`
+- Verified tests after the yolo pass:
+  - `uv run pytest -q`
+  - result: `14 passed`.
 
 - Implemented the overnight smoke-pipeline scripts:
   - `scripts/inspect_hopfield_inputs.py`
@@ -197,14 +236,13 @@ The immediate target is not a polished model. The target is a set of small, inst
 
 - Extend the unified and controlled model-comparison reports into a single combined table that includes trained Hopfield+OT-CFM heldout metrics on the same split definitions.
 - Extend the mixed-response leave-one panel from a first pass into a robust benchmark:
-  - add calibration/regularization to reduce nonresponder over-transport,
-  - add explicit failure categories in the report for hard failures, seed-sensitive cases, and training-budget-rescued cases,
+  - tune calibration/regularization beyond the first endpoint/amplitude loss probe,
   - add more than one responder/nonresponder per gene where available.
 - Investigate the hard failures from the current panel:
   - `IKZF3-5` responder: fails in both default and higher-budget runs.
-  - `SOX5-1` nonresponder: strongly over-transported away from control.
-  - `TP73-2` nonresponder: consistently over-transported away from control.
-  - `ZNF195-3` responder: unstable at default budget and worse at higher budget.
+  - `SOX5-1` nonresponder: strongly over-transported away from control and has no same-gene nonresponder sibling support.
+  - `TP73-2` nonresponder: improved with calibration but remains seed-sensitive.
+  - `ZNF195-3` responder: remains seed-sensitive and under-transported.
 - Continue debugging `NFATC1` as a seed-sensitive, low-cell robustness target rather than a deterministic metric failure.
 - Add length-matched and cell-count-matched holdout splits.
 - Add explicit covariates or controls for `log1p(n_cells)`, `protein_aa_length`, `orf_nt_length`, batch/library, and measurement uncertainty.

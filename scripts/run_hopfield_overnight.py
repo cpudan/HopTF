@@ -200,6 +200,25 @@ def main() -> None:
         [
             ("mutant_sequences", [args.python, "scripts/make_mutant_esmc_embeddings.py", "--outdir", str(outdir)]),
             (
+                "mutant_endpoint_predictions",
+                [
+                    args.python,
+                    "scripts/evaluate_mutant_endpoint_predictions.py",
+                    "--outdir",
+                    str(outdir),
+                    "--mutant-metadata",
+                    str(outdir / "mutant_sequences_metadata.csv"),
+                    "--mutant-embedding-matrix",
+                    str(outdir / "mutant_esmc_embeddings.npy"),
+                    "--mutant-vocab",
+                    str(outdir / "mutant_esmc_vocab.json"),
+                    "--latents",
+                    str(outdir / "perturbation_latents.npz"),
+                    "--checkpoint",
+                    str(outdir / "otcfm_real_overfit.pt"),
+                ],
+            ),
+            (
                 "sequence_endpoint_baselines",
                 [
                     args.python,
@@ -282,6 +301,8 @@ def main() -> None:
         "controlled_sequence_baselines_summary.json",
         "controlled_evaluation_report.md",
         "mutant_sequences_report.json",
+        "mutant_endpoint_predictions_report.json",
+        "mutant_endpoint_predictions.csv",
     ]
     for gene in holdout_genes:
         key_outputs.append(f"otcfm_leave_one_{gene}_summary.json")

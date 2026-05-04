@@ -40,6 +40,10 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--n-seeds", type=int, default=1)
     parser.add_argument("--aggregate-pass-rate", type=float, default=0.8)
     parser.add_argument("--nonresponder-response-ratio-threshold", type=float, default=1.5)
+    parser.add_argument("--endpoint-loss-weight", type=float, default=0.0)
+    parser.add_argument("--response-amplitude-loss-weight", type=float, default=0.0)
+    parser.add_argument("--endpoint-loss-steps", type=int, default=8)
+    parser.add_argument("--endpoint-loss-interval", type=int, default=10)
     parser.add_argument("--python", default=sys.executable)
     return parser.parse_args()
 
@@ -70,6 +74,24 @@ def select_panel_holdouts(
     return rows.loc[selected].copy().reset_index(drop=True)
 
 
+def sibling_label_support(metadata: pd.DataFrame, holdouts: pd.DataFrame) -> dict[str, dict[str, int]]:
+    support = {}
+    for _, row in holdouts.iterrows():
+        gene = str(row["gene_symbol"])
+        isoform_id = str(row["isoform_id"])
+        siblings = metadata.loc[
+            (metadata["gene_symbol"].astype(str) == gene)
+            & (metadata["isoform_id"].astype(str) != isoform_id)
+        ]
+        labels = siblings["label_status"].astype(str)
+        support[isoform_id] = {
+            "sibling_responders": int((labels == "responder").sum()),
+            "sibling_nonresponders": int((labels == "nonresponder").sum()),
+            "sibling_ambiguous": int((labels == "ambiguous").sum()),
+        }
+    return support
+
+
 def label_aware_pass(row: pd.Series | dict[str, Any], *, nonresponder_response_ratio_threshold: float) -> bool:
     label = str(row.get("label_status", ""))
     endpoint_fraction = pd.to_numeric(row.get("control_standardized_endpoint_mse_fraction_of_baseline"), errors="coerce")
@@ -79,6 +101,33 @@ def label_aware_pass(row: pd.Series | dict[str, Any], *, nonresponder_response_r
     if label == "responder":
         return bool(np.isfinite(endpoint_fraction) and endpoint_fraction < 1.0)
     return bool(row.get("passed", False))
+
+
+def failure_category(row: pd.Series | dict[str, Any], *, aggregate_pass_rate: float, nonresponder_response_ratio_threshold: float) -> str:
+    if bool(row.get("stable_label_aware_pass", False)):
+        return "stable_pass"
+    pass_rate = pd.to_numeric(row.get("label_aware_pass_rate"), errors="coerce")
+    label = str(row.get("label_status", ""))
+    response_ratio = pd.to_numeric(row.get("mean_control_standardized_response_l2_ratio_mean"), errors="coerce")
+    endpoint_fraction = pd.to_numeric(
+        row.get("control_standardized_endpoint_mse_fraction_of_baseline_mean"),
+        errors="coerce",
+    )
+    sibling_nonresponders = int(row.get("sibling_nonresponders", 0) or 0)
+    sibling_responders = int(row.get("sibling_responders", 0) or 0)
+    if np.isfinite(pass_rate) and pass_rate > 0.0:
+        return "seed_sensitive"
+    if label == "nonresponder" and sibling_nonresponders == 0:
+        return "unsupported_nonresponder_sibling"
+    if label == "responder" and sibling_responders == 0:
+        return "unsupported_responder_sibling"
+    if label == "nonresponder" and np.isfinite(response_ratio) and response_ratio > float(nonresponder_response_ratio_threshold):
+        return "overtransported_nonresponder"
+    if label == "responder" and np.isfinite(endpoint_fraction) and endpoint_fraction >= 1.0:
+        return "responder_endpoint_failure"
+    if np.isfinite(pass_rate) and pass_rate < float(aggregate_pass_rate):
+        return "below_stability_threshold"
+    return "hard_failure"
 
 
 def run_gene(args: argparse.Namespace, gene: str, holdouts: pd.DataFrame, *, seed_index: int, seed: int) -> dict[str, Any]:
@@ -113,6 +162,14 @@ def run_gene(args: argparse.Namespace, gene: str, holdouts: pd.DataFrame, *, see
         str(args.steps),
         "--seed",
         str(seed),
+        "--endpoint-loss-weight",
+        str(args.endpoint_loss_weight),
+        "--response-amplitude-loss-weight",
+        str(args.response_amplitude_loss_weight),
+        "--endpoint-loss-steps",
+        str(args.endpoint_loss_steps),
+        "--endpoint-loss-interval",
+        str(args.endpoint_loss_interval),
     ]
     for isoform_id in ids:
         command.extend(["--holdout-isoform-id", isoform_id])
@@ -135,7 +192,12 @@ def run_gene(args: argparse.Namespace, gene: str, holdouts: pd.DataFrame, *, see
     }
 
 
-def summarize_by_isoform(metrics: pd.DataFrame, *, aggregate_pass_rate: float) -> pd.DataFrame:
+def summarize_by_isoform(
+    metrics: pd.DataFrame,
+    *,
+    aggregate_pass_rate: float,
+    nonresponder_response_ratio_threshold: float,
+) -> pd.DataFrame:
     if metrics.empty:
         return pd.DataFrame()
     rows = []
@@ -143,7 +205,7 @@ def summarize_by_isoform(metrics: pd.DataFrame, *, aggregate_pass_rate: float) -
     optional_columns = ["n_cells", "response_score", "protein_aa_length"]
     for keys, group in metrics.groupby(id_columns, dropna=False):
         row = dict(zip(id_columns, keys, strict=True))
-        for column in optional_columns:
+        for column in optional_columns + ["sibling_responders", "sibling_nonresponders", "sibling_ambiguous"]:
             if column in group.columns:
                 row[column] = group[column].iloc[0]
         row.update(
@@ -170,6 +232,11 @@ def summarize_by_isoform(metrics: pd.DataFrame, *, aggregate_pass_rate: float) -
             if column in group.columns:
                 row[f"{column}_mean"] = float(pd.to_numeric(group[column], errors="coerce").mean())
                 row[f"{column}_sd"] = float(pd.to_numeric(group[column], errors="coerce").std(ddof=0))
+        row["failure_category"] = failure_category(
+            row,
+            aggregate_pass_rate=float(aggregate_pass_rate),
+            nonresponder_response_ratio_threshold=float(nonresponder_response_ratio_threshold),
+        )
         rows.append(row)
     return pd.DataFrame(rows).sort_values(["stable_label_aware_pass", "label_aware_pass_rate"], ascending=[True, True])
 
@@ -199,6 +266,7 @@ def main() -> None:
     run_rows = []
     metric_frames = []
     holdouts_by_gene = {}
+    support_by_isoform = {}
     for gene in genes:
         holdouts = select_panel_holdouts(
             metadata,
@@ -209,8 +277,23 @@ def main() -> None:
         if holdouts.empty:
             run_rows.append({"gene": gene, "returncode": None, "seconds": 0.0, "log": None, "metrics_csv": None, "summary_json": None})
             continue
+        support_by_isoform.update(sibling_label_support(metadata, holdouts))
+        for isoform_id, support in support_by_isoform.items():
+            mask = holdouts["isoform_id"].astype(str) == str(isoform_id)
+            for key, value in support.items():
+                holdouts.loc[mask, key] = int(value)
         holdouts_by_gene[gene] = holdouts
-        keep_cols = ["gene_symbol", "isoform_id", "label_status", "n_cells", "response_score", "protein_aa_length"]
+        keep_cols = [
+            "gene_symbol",
+            "isoform_id",
+            "label_status",
+            "n_cells",
+            "response_score",
+            "protein_aa_length",
+            "sibling_responders",
+            "sibling_nonresponders",
+            "sibling_ambiguous",
+        ]
         target_rows.extend(holdouts.loc[:, [column for column in keep_cols if column in holdouts.columns]].to_dict(orient="records"))
     for seed_index in range(int(args.n_seeds)):
         seed = int(args.seed) + seed_index
@@ -225,6 +308,10 @@ def main() -> None:
                 metrics["panel_seed"] = int(seed)
                 metrics["panel_returncode"] = run["returncode"]
                 metrics["panel_log"] = run["log"]
+                for isoform_id, support in support_by_isoform.items():
+                    mask = metrics["isoform_id"].astype(str) == str(isoform_id)
+                    for key, value in support.items():
+                        metrics.loc[mask, key] = int(value)
                 metrics["label_aware_pass"] = metrics.apply(
                     label_aware_pass,
                     axis=1,
@@ -235,7 +322,11 @@ def main() -> None:
     targets = pd.DataFrame(target_rows)
     runs = pd.DataFrame(run_rows)
     metrics = pd.concat(metric_frames, ignore_index=True) if metric_frames else pd.DataFrame()
-    aggregate = summarize_by_isoform(metrics, aggregate_pass_rate=float(args.aggregate_pass_rate))
+    aggregate = summarize_by_isoform(
+        metrics,
+        aggregate_pass_rate=float(args.aggregate_pass_rate),
+        nonresponder_response_ratio_threshold=float(args.nonresponder_response_ratio_threshold),
+    )
     targets_path = outdir / "otcfm_leave_one_panel_targets.csv"
     runs_path = outdir / "otcfm_leave_one_panel_runs.csv"
     metrics_path = outdir / "otcfm_leave_one_panel_metrics.csv"
@@ -256,6 +347,10 @@ def main() -> None:
         "max_train_rows": int(args.max_train_rows),
         "aggregate_pass_rate": float(args.aggregate_pass_rate),
         "nonresponder_response_ratio_threshold": float(args.nonresponder_response_ratio_threshold),
+        "endpoint_loss_weight": float(args.endpoint_loss_weight),
+        "response_amplitude_loss_weight": float(args.response_amplitude_loss_weight),
+        "endpoint_loss_steps": int(args.endpoint_loss_steps),
+        "endpoint_loss_interval": int(args.endpoint_loss_interval),
         "n_genes": int(len(genes)),
         "n_genes_with_targets": int(len(holdouts_by_gene)),
         "n_holdouts": int(metrics.shape[0]),
@@ -268,6 +363,11 @@ def main() -> None:
         "n_isoforms": int(aggregate.shape[0]),
         "n_stable_label_aware_passed": (
             int(aggregate["stable_label_aware_pass"].sum()) if "stable_label_aware_pass" in aggregate else 0
+        ),
+        "failure_categories": (
+            aggregate["failure_category"].value_counts().sort_index().to_dict()
+            if "failure_category" in aggregate
+            else {}
         ),
         "passed_all": bool(metrics["passed"].all()) if "passed" in metrics and not metrics.empty else False,
         "label_aware_passed_all": (
@@ -291,12 +391,29 @@ def main() -> None:
         f"Endpoint criterion: {summary['n_passed']} / {summary['n_holdouts']} seed-level holdouts passed",
         f"Label-aware criterion: {summary['n_label_aware_passed']} / {summary['n_holdouts']} seed-level holdouts passed",
         f"Stable label-aware isoforms: {summary['n_stable_label_aware_passed']} / {summary['n_isoforms']} at pass-rate >= {summary['aggregate_pass_rate']}",
+        f"Endpoint loss weight: `{summary['endpoint_loss_weight']}`",
+        f"Response-amplitude loss weight: `{summary['response_amplitude_loss_weight']}`",
         f"Genes: {', '.join(genes)}",
         "",
         "## Targets",
         "",
     ]
-    lines.extend(compact_markdown_table(targets, ["gene_symbol", "isoform_id", "label_status", "n_cells", "response_score", "protein_aa_length"]))
+    lines.extend(
+        compact_markdown_table(
+            targets,
+            [
+                "gene_symbol",
+                "isoform_id",
+                "label_status",
+                "n_cells",
+                "response_score",
+                "protein_aa_length",
+                "sibling_responders",
+                "sibling_nonresponders",
+                "sibling_ambiguous",
+            ],
+        )
+    )
     lines.extend(["", "## Aggregate", ""])
     aggregate_columns = [
         "gene_symbol",
@@ -308,6 +425,10 @@ def main() -> None:
         "endpoint_pass_rate",
         "label_aware_pass_rate",
         "stable_label_aware_pass",
+        "failure_category",
+        "sibling_responders",
+        "sibling_nonresponders",
+        "sibling_ambiguous",
         "control_standardized_endpoint_mse_fraction_of_baseline_mean",
         "mean_control_standardized_response_l2_ratio_mean",
     ]

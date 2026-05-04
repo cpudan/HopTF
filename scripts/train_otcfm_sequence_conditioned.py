@@ -43,6 +43,10 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--cond-dim", type=int, default=128)
     parser.add_argument("--hidden-dim", type=int, default=256)
     parser.add_argument("--integration-steps", type=int, default=32)
+    parser.add_argument("--endpoint-loss-weight", type=float, default=0.0)
+    parser.add_argument("--response-amplitude-loss-weight", type=float, default=0.0)
+    parser.add_argument("--endpoint-loss-steps", type=int, default=8)
+    parser.add_argument("--endpoint-loss-interval", type=int, default=10)
     parser.add_argument("--device", default="auto")
     parser.add_argument("--disable-torchcfm", action="store_true")
     return parser.parse_args()
@@ -211,6 +215,17 @@ def select_training_indices(
     return np.sort(np.concatenate([must_keep, sampled]).astype(np.int64))
 
 
+def integrate_from_control(model, esm_b, control_mean_t, *, n_steps: int):
+    torch, _, _ = require_torch()
+    x = control_mean_t.reshape(1, -1).repeat(int(esm_b.shape[0]), 1)
+    realized_steps = max(1, int(n_steps))
+    for step in range(realized_steps):
+        t_value = (step + 0.5) / float(realized_steps)
+        t = torch.full((x.shape[0], 1), t_value, dtype=x.dtype, device=x.device)
+        x = x + model(t, x, esm_b) / float(realized_steps)
+    return x
+
+
 def train_one(
     *,
     esm: np.ndarray,
@@ -271,9 +286,41 @@ def train_one(
             xt = (1.0 - t) * x0_b + t * x1_b
             target_v = x1_b - x0_b
         pred_v = model(t, xt, esm_b)
-        loss = F.mse_loss(pred_v, target_v)
+        velocity_loss = F.mse_loss(pred_v, target_v)
+        endpoint_loss = torch.zeros((), dtype=velocity_loss.dtype, device=device)
+        response_amplitude_loss = torch.zeros((), dtype=velocity_loss.dtype, device=device)
+        use_endpoint_loss = (
+            float(args.endpoint_loss_weight) > 0.0
+            or float(args.response_amplitude_loss_weight) > 0.0
+        ) and step < int(args.steps)
+        if use_endpoint_loss and step % max(1, int(args.endpoint_loss_interval)) == 0:
+            endpoint_pred = integrate_from_control(
+                model,
+                esm_b,
+                control_mean_t,
+                n_steps=int(args.endpoint_loss_steps),
+            )
+            if float(args.endpoint_loss_weight) > 0.0:
+                endpoint_loss = F.mse_loss(endpoint_pred, x1_b)
+            if float(args.response_amplitude_loss_weight) > 0.0:
+                pred_response_l2 = torch.linalg.norm(endpoint_pred - control_mean_t.reshape(1, -1), dim=1)
+                target_response_l2 = torch.linalg.norm(x1_b - control_mean_t.reshape(1, -1), dim=1)
+                response_amplitude_loss = F.mse_loss(pred_response_l2, target_response_l2)
+        loss = (
+            velocity_loss
+            + float(args.endpoint_loss_weight) * endpoint_loss
+            + float(args.response_amplitude_loss_weight) * response_amplitude_loss
+        )
         if step == 0 or step == int(args.steps):
-            history.append({"step": int(step), "velocity_mse": float(loss.detach().cpu())})
+            history.append(
+                {
+                    "step": int(step),
+                    "velocity_mse": float(velocity_loss.detach().cpu()),
+                    "endpoint_mse": float(endpoint_loss.detach().cpu()),
+                    "response_amplitude_mse": float(response_amplitude_loss.detach().cpu()),
+                    "total_loss": float(loss.detach().cpu()),
+                }
+            )
         if step == int(args.steps):
             break
         opt.zero_grad(set_to_none=True)
@@ -303,6 +350,10 @@ def train_one(
         "x_dim": int(x1.shape[1]),
         "esm_dim": int(esm.shape[1]),
         "steps": int(args.steps),
+        "endpoint_loss_weight": float(args.endpoint_loss_weight),
+        "response_amplitude_loss_weight": float(args.response_amplitude_loss_weight),
+        "endpoint_loss_steps": int(args.endpoint_loss_steps),
+        "endpoint_loss_interval": int(args.endpoint_loss_interval),
         "history": history,
         "train_baseline_standardized_mse": baseline,
         **endpoint_metrics(pred=pred, target=x1[eval_idx], control_mean=control_mean, control_sd=control_sd),

@@ -8,8 +8,9 @@ import pandas as pd
 import pytest
 
 from scripts.hopfield_fitting_common import candidate_isoform_groups, load_vocab, normalize_rows, spearman
+from scripts.evaluate_mutant_endpoint_predictions import missing_inputs
 from scripts.make_mutant_esmc_embeddings import parse_mutation
-from scripts.run_otcfm_leave_one_panel import label_aware_pass, select_panel_holdouts, summarize_by_isoform
+from scripts.run_otcfm_leave_one_panel import failure_category, label_aware_pass, select_panel_holdouts, summarize_by_isoform
 from scripts.train_otcfm_sequence_conditioned import endpoint_metrics
 
 
@@ -125,7 +126,39 @@ def test_summarize_by_isoform_reports_stable_pass_rate() -> None:
         }
     )
 
-    summary = summarize_by_isoform(metrics, aggregate_pass_rate=0.8).sort_values("isoform_id")
+    summary = summarize_by_isoform(
+        metrics,
+        aggregate_pass_rate=0.8,
+        nonresponder_response_ratio_threshold=1.5,
+    ).sort_values("isoform_id")
 
     assert summary["label_aware_pass_rate"].tolist() == [0.5, 1.0]
     assert summary["stable_label_aware_pass"].tolist() == [False, True]
+
+
+def test_failure_category_marks_unsupported_nonresponder() -> None:
+    row = {
+        "label_status": "nonresponder",
+        "stable_label_aware_pass": False,
+        "label_aware_pass_rate": 0.0,
+        "sibling_nonresponders": 0,
+        "mean_control_standardized_response_l2_ratio_mean": 5.0,
+    }
+
+    assert failure_category(row, aggregate_pass_rate=0.8, nonresponder_response_ratio_threshold=1.5) == "unsupported_nonresponder_sibling"
+
+
+def test_mutant_endpoint_missing_inputs_reports_paths(tmp_path: Path) -> None:
+    class Args:
+        mutant_metadata = tmp_path / "missing_metadata.csv"
+        mutant_embedding_matrix = tmp_path / "missing_mutants.npy"
+        mutant_vocab = tmp_path / "missing_mutants.json"
+        wt_embedding_matrix = tmp_path / "missing_wt.npy"
+        wt_vocab = tmp_path / "missing_wt.json"
+        latents = tmp_path / "missing_latents.npz"
+        checkpoint = tmp_path / "missing_model.pt"
+
+    missing = missing_inputs(Args())
+
+    assert str(Args.mutant_embedding_matrix) in missing
+    assert len(missing) == 7
