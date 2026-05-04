@@ -6,6 +6,11 @@ __pycache__/
 .ipynb_checkpoints/
 data/raw/
 data/processed/
+data/hf_min/
+data/raw_sources/
+tmp/
+tf_length_response_qc_outputs/
+data/reference/*.xlsx
 data/reference/scarf/model_files.zip
 data/reference/scarf/model_files/
 data/reference/scarf/weights/
