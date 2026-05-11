@@ -10,14 +10,13 @@ from typing import Any, Protocol
 
 import numpy as np
 
-from mantra.embeddings.generate_esm3 import POOL_MODES, pool_token_embeddings, sanitize_sequence
-
 
 DEFAULT_META_DIR = Path("data/processed/metadata")
 DEFAULT_SNAPSHOT_ROOT = Path("data/raw/protein/esmc")
 DEFAULT_OUT_ROOT = Path("data/processed/embeddings/registry/protein_sequence/source_gene_artifacts")
 DEFAULT_MODEL_SIZE = "300m"
 DEFAULT_POOL = "mean_non_special"
+POOL_MODES = ("cls", "mean", "mean_non_special")
 
 ESMC_MODELS: dict[str, dict[str, Any]] = {
     "300m": {
@@ -39,12 +38,39 @@ ESMC_MODELS: dict[str, dict[str, Any]] = {
 }
 
 # Example invocation:
-# PYTHONPATH=src:. python -m mantra.embeddings.generate_esmc \
+# PYTHONPATH=src:. python scripts/generate_esmc.py \
+#   --model-size 600m \
 #   --device cuda \
-#   --vocab-path /tmp/mantra_one_tf_vocab.json \
+#   --vocab-path /tmp/hoptf_one_tf_vocab.json \
 #   --sequence-path data/processed/metadata/regulator_sequences.json \
-#   --out-dir /tmp/mantra_esm3_gata1 \
-#   --out-prefix GATA1_esm3
+#   --out-dir /tmp/hoptf_esmc_gata1 \
+#   --out-prefix GATA1_esmc
+
+
+def sanitize_sequence(sequence: str, max_length: int) -> str:
+    """Normalize a protein sequence before ESM-C tokenization."""
+    return "".join(str(sequence).split()).upper()[:max_length]
+
+
+def pool_token_embeddings(embeddings: np.ndarray, *, pool: str) -> np.ndarray:
+    """Pool one sequence of token-level ESM-C embeddings into one vector."""
+    if pool not in POOL_MODES:
+        raise ValueError(f"pool must be one of {POOL_MODES}; got {pool!r}")
+    arr = np.asarray(embeddings, dtype=np.float32)
+    if arr.ndim == 3:
+        if arr.shape[0] != 1:
+            raise ValueError(f"expected a single sequence batch, got shape {arr.shape}")
+        arr = arr[0]
+    if arr.ndim != 2:
+        raise ValueError(f"expected token embeddings with shape [L, D] or [1, L, D], got {arr.shape}")
+    if arr.shape[0] == 0:
+        raise ValueError("cannot pool an empty token embedding array")
+    if pool == "cls":
+        return np.asarray(arr[0], dtype=np.float32)
+    if pool == "mean":
+        return np.asarray(arr.mean(axis=0), dtype=np.float32)
+    token_arr = arr[1:-1] if arr.shape[0] > 2 else arr
+    return np.asarray(token_arr.mean(axis=0), dtype=np.float32)
 
 
 class SequenceExtractor(Protocol):

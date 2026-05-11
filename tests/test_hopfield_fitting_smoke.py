@@ -7,6 +7,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
+from scripts.generate_esmc import POOL_MODES, pool_token_embeddings, sanitize_sequence
 from scripts.hopfield_fitting_common import candidate_isoform_groups, load_vocab, normalize_rows, spearman
 from scripts.evaluate_mutant_endpoint_predictions import missing_inputs
 from scripts.make_mutant_esmc_embeddings import parse_mutation
@@ -57,6 +58,25 @@ def test_parse_mutation() -> None:
     assert parse_mutation("R248Q") == ("R", 248, "Q")
     with pytest.raises(ValueError):
         parse_mutation("bad")
+
+
+def test_generate_esmc_helpers_do_not_require_mantra() -> None:
+    assert "mean_non_special" in POOL_MODES
+    assert sanitize_sequence(" ac d\n", max_length=3) == "ACD"
+
+    embeddings = np.asarray(
+        [
+            [100.0, 100.0],
+            [1.0, 3.0],
+            [5.0, 7.0],
+            [200.0, 200.0],
+        ],
+        dtype=np.float32,
+    )
+
+    pooled = pool_token_embeddings(embeddings, pool="mean_non_special")
+
+    assert np.allclose(pooled, [3.0, 5.0])
 
 
 def test_endpoint_metrics_control_standardized_geometry_can_differ_from_raw_mse() -> None:
