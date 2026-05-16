@@ -29,18 +29,107 @@ Run three nested panels, not one broad panel.
 
 Goal: increase power while keeping the same curation logic as the 48-variant run.
 
+Paper role:
+
+Panel A is the first, broadest test for the paper's sequence-sensitivity claim. It fills the gap between the clean but underpowered 48-variant pilot and a reportable statement about whether HopTF endpoint predictions respond systematically to TF missense variation. It should support the mutation Results subsection in `paper/HopTF_full_draft.tex`, provisionally titled:
+
+> Sequence variants perturb retrieval and endpoint predictions
+
+If only Panel A endpoint outputs are available, use narrower wording:
+
+> Expanded ClinVar variant panel tests endpoint sequence sensitivity
+
+Question answered:
+
+Do deleterious ClinVar TF missense variants produce more negative predicted response shifts than benign ClinVar TF missense variants under the current frozen PCA-centroid HopTF endpoint model?
+
+Gap filled:
+
+The pilot panel had only 24 benign and 24 deleterious variants, with directional but weak separation (`AUROC = 0.578`). Panel A tests whether that weak signal is mostly a power/yield problem or whether broad ClinVar pathogenicity is too heterogeneous for this endpoint target.
+
 Target:
 
 - 100-300 benign / likely benign variants
 - 100-300 pathogenic / likely pathogenic variants
-- all coordinate-checked against local responder isoforms
-- cap at 3-5 variants per gene per class
+- minimum useful yield: at least 100 variants per class, or a clear documented reason why strict coordinate validation yields fewer
+- all variants coordinate-checked against local responder isoforms
+- cap at 3-5 variants per gene per class for the primary balanced analysis
+- retain an uncapped locked table for sensitivity analysis and provenance
 
-Use this panel to ask whether the broad ClinVar signal becomes statistically stable.
+Primary analysis set:
+
+- all valid ClinVar missense variants passing the inclusion/rejection criteria below
+- local HopTF isoform must be a responder with `n_cells >= 5`
+- protein coordinate must match the local isoform residue exactly
+- one row per variant/isoform pair after deduplication
+- if multiple ClinVar records collapse to the same gene, residue, alternate amino acid, and isoform, keep the strongest-review record and record merged accessions/IDs in a provenance field
+
+Required row-level metadata:
+
+- stable variant ID, ClinVar variation/accession IDs when available, `gene_symbol`, `isoform_embedding_id`, `mutant_embedding_id`
+- clinical class normalized to `benign` or `deleterious`
+- original ClinVar clinical significance, review status, submitter count if available, and source assembly
+- protein mutation string, WT residue, 1-based position, mutant residue, protein position fraction
+- local sequence length, local WT residue check result, coordinate-check status and rejection reason if rejected
+- `n_cells`, `label_status`, WT predicted response magnitude after endpoint prediction
+- optional but desired: TF family, broad domain label, DNA-binding-domain indicator, and domain-source provenance
+- ESM-C WT-mutant distance fields once embeddings are available
+
+Retrieval-delta hooks:
+
+Panel A remains endpoint-centered, but its locked tables must be joinable to later retrieval-delta analysis. Preserve `isoform_embedding_id`, `mutant_embedding_id`, variant ID, gene symbol, protein coordinate, and clinical class in every downstream output. These fields are required to join Panel A endpoint results to future `delta_q`, `delta_attention`, and `delta_mu_p` tables.
+
+Required Panel A artifacts:
+
+- `variant_panel_locked_all_clinvar.csv`: primary locked Panel A table after coordinate validation and balancing flags
+- `variant_panel_locked_all_clinvar_uncapped.csv`: optional uncapped valid set before per-gene caps, if enough records exist
+- `variant_panel_curation_report.json`: candidate counts, rejection counts by reason, final counts by class, genes, TF families, review status, and coordinate-check outcomes
+- `variant_panel_endpoint_predictions_annotated.csv`: endpoint predictions joined to all Panel A metadata
+- `variant_panel_validation_summary.json`: primary statistics, bootstrap confidence intervals, calibration checks, and failure-mode flags
+- `variant_panel_validation_report.md`: report-ready summary with paper-safe interpretation
+
+Primary endpoint:
+
+```text
+percent_delta = 100 * mutant_minus_wt_predicted_response_l2 / wt_predicted_response_l2
+```
+
+Negative values mean the mutant has weaker predicted response than WT.
+
+Primary statistics:
+
+- Mann-Whitney U test comparing `percent_delta` for benign vs deleterious variants
+- rank-biserial effect size or Cliff's delta
+- AUROC for deleterious classification using `-percent_delta`
+- bootstrap confidence intervals for benign median, deleterious median, and median class difference
+- cluster bootstrap by `gene_symbol` if variants cluster heavily in a few genes
+
+Calibration and robustness checks:
+
+- fraction of benign variants with `abs(percent_delta) <= 5%`
+- fraction of deleterious variants with `percent_delta < 0`
+- class separation after applying the 3-5 variants per gene per class cap
+- class separation in the uncapped valid set, if produced
+- `percent_delta` versus ESM-C WT-mutant distance, to check whether the signal is just embedding-distance magnitude
+- class separation stratified by review strength, WT response magnitude, `n_cells`, protein position fraction, and optional domain indicator
+
+Paper outputs:
+
+- Main mutation table: Panel A counts, median `percent_delta` by class, class difference, AUROC, p-value, and bootstrap confidence interval.
+- Main mutation figure: violin/box/strip plot of `percent_delta` by clinical class, with points colored or faceted by gene or TF family if readable.
+- Secondary figure or supplement: ESM-C WT-mutant distance versus `percent_delta`, plus per-gene class deltas.
+- Results paragraph: state whether the expanded panel strengthens, weakens, or fails to improve the 48-variant pilot trend.
 
 Expected limitation:
 
 ClinVar pathogenicity may reflect disease mechanisms unrelated to TF DNA binding or transcriptional response amplitude.
+
+Interpretation rules:
+
+- If Panel A succeeds, claim only that the current frozen endpoint model is sequence-sensitive to broad ClinVar missense variation.
+- Do not claim biological mutation-effect validation from Panel A alone.
+- If Panel A fails but Panel B or Panel C succeeds, report that broad ClinVar pathogenicity is too heterogeneous and that functional/domain-matched curation is required.
+- If Panel A fails and later panels also fail, interpret this as evidence that the current endpoint checkpoint or PCA-centroid target may be insufficiently mutation-sensitive.
 
 ### Panel B: DNA-Binding-Domain-Enriched Panel
 
