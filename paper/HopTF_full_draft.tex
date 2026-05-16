@@ -1,0 +1,679 @@
+\documentclass[11pt]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{natbib}
+\usepackage{caption}
+\usepackage{float}
+\usepackage{microtype}
+\usepackage{framed}
+\usepackage{setspace}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue!60!black,
+    citecolor=blue!60!black,
+    urlcolor=blue!60!black
+}
+
+\setlist[itemize]{leftmargin=1.3em}
+\setlist[enumerate]{leftmargin=1.5em}
+
+\newcommand{\hoptf}{\textsc{HopTF}}
+\newcommand{\ag}{\textsc{AlphaGenome}}
+\newcommand{\scarf}{\textsc{SCARF}}
+\newcommand{\esm}{\textsc{ESM-C}}
+\newcommand{\todo}[1]{\textcolor{red!70!black}{\textbf{[TODO:} #1\textbf{]}}}
+\newcommand{\placeholder}[1]{%
+\begin{center}
+\fbox{\begin{minipage}{0.92\linewidth}
+\textbf{Placeholder.} #1
+\end{minipage}}
+\end{center}}
+\newcommand{\interpretation}[1]{%
+\begin{center}
+\fbox{\begin{minipage}{0.92\linewidth}
+\textbf{Interpretation placeholder.} #1
+\end{minipage}}
+\end{center}}
+\newcommand{\figplaceholder}[3]{%
+\begin{figure}[H]
+\centering
+\fbox{\begin{minipage}[c][2.15in][c]{0.90\linewidth}
+\centering
+\textbf{Figure placeholder: #2}\\[0.8em]
+\small #3
+\end{minipage}}
+\caption{#2. #3}
+\label{fig:#1}
+\end{figure}}
+
+\title{\vspace{-1.0em}\textbf{\hoptf: Sequence-Conditioned Associative Retrieval for Hypothesis-Generating Transcription Factor Perturbation Modeling}\\[-0.15em]
+\large CLMM Final Report Draft}
+\author{
+Audrey Acken\\Columbia University\\\texttt{aa5063@columbia.edu}
+\and
+Peter Driscoll\\Columbia University\\\texttt{pvd2112@columbia.edu}
+\and
+Daniel Meyer\\Columbia University and New York Genome Center\\\texttt{djm2261@columbia.edu}
+}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Transcription factor (TF) overexpression can induce coordinated changes across gene regulatory programs, but existing single-cell perturbation models often represent perturbations as categorical gene identifiers, learned embeddings, or graph-derived features. These representations are limited when the perturbation is a TF isoform with sequence-specific regulatory potential and when the goal is to generate hypotheses about which regulatory loci mediate the response. We introduce \hoptf, a biophysically motivated, sequence-conditioned perturbation model that frames TF response prediction as associative retrieval over a genome-indexed memory bank. \hoptf\ represents each TF perturbation using a protein language model embedding of the TF isoform sequence. This TF embedding acts as a query over \ag-derived genomic locus embeddings, optionally modulated by cell-state or cluster-specific accessibility context. The resulting Hopfield/attention retrieval distribution defines a soft activation pattern over candidate regulatory loci, and the pooled representation \(\mu_p\) conditions a flow model that predicts the transport from control-cell latent states to TF-perturbed latent states. The model is trained end-to-end from aggregate perturbation-response supervision, without locus-level labels, giving the problem a weakly supervised multiple-instance structure. We position \hoptf\ as a hypothesis-generating model rather than a definitive binding-site predictor: high-retrieval loci are interpreted as model-prioritized regulatory-context hypotheses that require validation through motif enrichment, accessibility consistency, target-gene proximity, and artifact-controlled baselines. 
+
+\placeholder{Insert final one-to-three sentence empirical summary after experiments are complete. Suggested template: ``On [dataset/split], \hoptf\ [improves / does not improve] over [baseline] by [metric]. Retrieval diagnostics show [motif enrichment / entropy behavior / accessibility consistency]. These results support [claim strength] while revealing [main limitation].''}
+\end{abstract}
+
+\section{Introduction}
+
+Modeling how transcription factors reshape cellular state is a central problem in systems biology. TFs regulate large gene programs by binding regulatory DNA, interacting with cofactors, and altering transcriptional output. This makes them natural targets for directed differentiation, cell-state engineering, and regulatory network inference. The TF Atlas of directed differentiation profiled overexpression responses for all annotated human TF isoforms in H1 human embryonic stem cells at single-cell resolution, providing a large-scale resource for learning TF-induced transcriptional responses \citep{joung2023}. However, the dataset is fundamentally aggregate: we observe the downstream expression phenotype for a TF perturbation, but not the individual regulatory loci responsible for mediating that response.
+
+This observation motivates the core modeling question of this project: can a TF isoform sequence be used as a molecular cue to retrieve regulatory contexts from the genome, and can the retrieved context condition prediction of the TF-induced cell-state shift? \hoptf\ addresses this question by combining three pretrained biological representation layers with a differentiable associative retrieval bottleneck. First, genomic loci are represented by \ag-derived regulatory embeddings, giving a genome-indexed memory bank of candidate regulatory contexts. Second, TF isoforms are represented by protein language model embeddings derived from their amino-acid sequences. Third, single-cell expression profiles are mapped into a latent cell-state space using a multimodal single-cell encoder. A Hopfield-style retrieval module then uses the TF embedding, optionally modulated by cell state, to produce an activation distribution over genomic loci. The weighted pooled locus representation \(\mu_p\) conditions a continuous flow model that transports control-cell states toward TF-perturbed states.
+
+The conceptual contribution is not the use of a softmax or attention operation alone. Modern Hopfield networks and transformer attention are mathematically related \citep{ramsauer2021,vaswani2017}, and generic attention layers are now common across biological deep learning. The distinction is that \hoptf\ assigns the retrieval operation a specific biological role. The query is a TF isoform sequence embedding; the memory slots are genomic regulatory locus embeddings; the retrieved state is a regulatory-context representation; and the downstream target is the TF-conditioned perturbation transport field. This decomposition gives the retrieval distribution biological semantics and makes it a primary object of analysis rather than an incidental hidden layer.
+
+We therefore frame \hoptf\ as a sequence-conditioned associative retrieval model for hypothesis-generating TF perturbation prediction. The model is trained using only aggregate perturbation-response supervision. It is not told which loci mediate the TF response. It must instead learn a retrieval distribution over candidate loci whose pooled representation improves prediction of the observed transcriptional response. This induces a weakly supervised multiple-instance structure: for a given cell state, the genome, or an accessibility-filtered subset of the genome in masked variants, forms a bag of candidate regulatory loci, while the TF isoform embedding acts as a query over this bag.
+
+\paragraph{Claim boundary.}
+We treat the associative-memory framing as a computational abstraction. We do not claim that the genome is literally a Hopfield memory, nor that high-retrieval loci are validated TF binding sites. Instead, high-retrieval loci are model-prioritized regulatory-context hypotheses. The appropriate biological validation is diagnostic: motif enrichment, accessibility consistency, overlap with external ChIP-seq or perturbation evidence when available, proximity to affected target genes, and robustness to artifact-controlled baselines.
+
+\paragraph{Summary of intended contributions.}
+\begin{enumerate}
+    \item We formulate TF perturbation prediction as sequence-conditioned associative retrieval over a genome-indexed regulatory memory bank.
+    \item We connect the retrieval module to weakly supervised multiple-instance learning, where locus-level mediators are latent and supervision is available only at the aggregate perturbation-response level.
+    \item We combine the retrieved regulatory-context representation with a conditional flow field for predicting cell-state transport under TF overexpression.
+    \item We propose retrieval diagnostics and artifact controls that make the model useful for hypothesis generation rather than opaque endpoint prediction.
+\end{enumerate}
+
+\figplaceholder{overview}{Overview of \hoptf}{Schematic to create. Left: TF isoform amino-acid sequence is encoded by a protein language model and projected into query space. Middle: genomic loci are encoded by \ag\ into a memory bank of keys and values. Cell state optionally modulates retrieval through accessibility or cluster-specific bias. Right: retrieved representation \(\mu_p\) conditions a flow model that transports control-cell latent states to TF-perturbed latent states. Add a separate panel showing retrieval weights over loci as interpretable activation patterns.}
+
+\section{Background and Related Work}
+
+\subsection{Associative memory, Hopfield retrieval, and attention}
+
+Classical Hopfield networks introduced content-addressable associative memory: stored patterns can be retrieved from partial or noisy cues through energy-based dynamics \citep{hopfield1982}. Dense associative memory generalized this idea to higher-capacity energy functions capable of storing and retrieving many more patterns \citep{krotov2016}. Modern Hopfield networks extend associative memory to continuous states and show that the update rule is equivalent to the attention mechanism used in transformers \citep{ramsauer2021,vaswani2017}. This connection supports a retrieval-centric interpretation of attention: a query retrieves stored patterns through similarity-weighted pooling.
+
+This perspective has already been useful in biological multiple-instance learning. DeepRC uses transformer-like attention, equivalently modern Hopfield retrieval, to classify immune repertoires from extremely large bags of immune receptor sequences with sparse disease-associated witnesses \citep{widrich2020}. The analogy to \hoptf\ is direct but not identical. In immune repertoire classification, the model must identify a small set of disease-relevant sequences from a massive repertoire. In \hoptf, the model must identify TF-compatible regulatory contexts from a large set of genomic loci using only aggregate transcriptional response supervision.
+
+\subsection{Single-cell perturbation response models}
+
+A growing literature models transcriptional responses to genetic or chemical perturbations in single cells. GEARS represents perturbations using gene embeddings and gene-gene relationship graphs to predict outcomes for held-out genetic perturbations \citep{roohani2023}. CellOT learns maps between control and perturbed cell-state distributions using optimal transport \citep{bunne2023}. scGPT and related single-cell foundation models use transformer-style pretraining over gene expression profiles for cell representation learning and downstream perturbation tasks \citep{cui2024}. Recent benchmarking work has emphasized that simple baselines can be difficult to beat in single-cell perturbation prediction, making artifact controls and rigorous split design essential \citep{ahlmanneltze2025}.
+
+These methods are important comparators, but most do not explicitly represent a TF perturbation by its amino-acid sequence, retrieve regulatory loci, and expose a locus-level activation distribution. \hoptf\ is therefore positioned less as a generic endpoint predictor and more as a model for sequence-conditioned hypothesis generation about TF-compatible regulatory contexts.
+
+\subsection{Mechanistic and regulatory-network approaches}
+
+CellOracle performs in silico TF perturbation by constructing gene regulatory networks from single-cell multi-omics data and simulating downstream expression changes after TF perturbation \citep{kamimoto2023}. SCENIC+ infers enhancer-driven gene regulatory networks by identifying candidate enhancers, enriched TF motifs, and links between TFs, enhancers, and target genes \citep{gonzalezblas2023}. These frameworks provide mechanistic biological interpretability through motifs, regulatory regions, and network structure. However, they generally rely on motif libraries, enhancer-gene linking, and regression or network propagation rather than protein-sequence-conditioned differentiable retrieval.
+
+\hoptf\ is complementary to these approaches. It does not replace motif- or ChIP-based validation. Instead, it produces a learned retrieval distribution over loci that can be compared against motif enrichment, accessibility, target gene annotations, and external binding evidence.
+
+\subsection{Protein-aware TF-DNA binding models}
+
+TransBind and TFBindFormer are close protein-aware TF-DNA binding baselines because they condition DNA sequence predictions on TF protein representations through cross-attention \citep{basnet2026,liutfbindformer2026}. These models are strong comparators for protein-conditioned binding prediction on local genomic sequence windows. The distinction is the modeling level. TransBind and TFBindFormer predict TF-DNA binding over local sequence bins or ChIP-style labels; \hoptf\ retrieves from a genome-indexed regulatory memory and uses the retrieved state to condition a downstream cell-state perturbation model. In other words, \hoptf\ is not a local binding classifier. It is a weakly supervised model of TF sequence, regulatory context, and aggregate perturbation response.
+
+\subsection{Sequence-conditioned transport}
+
+STRAND is a close conceptual neighbor because it models single-cell perturbation responses using sequence-conditioned transport \citep{fu2026}. STRAND represents a perturbation by encoding regulatory DNA sequence at the genomic locus of intervention and uses that sequence representation to parameterize transport from control to perturbed cell states. \hoptf\ differs in the direction of conditioning: the perturbation cue is the TF protein isoform sequence, and the model retrieves from a genome-wide regulatory memory bank before conditioning the flow field.
+
+\section{Problem Formulation}
+
+Let \(x \in \mathbb{R}^G\) denote a single-cell expression vector over \(G\) genes. Let \(p\) index a TF perturbation, and let \(s_p\) denote the amino-acid sequence of the perturbed TF isoform. The training data consist of control cells and TF-perturbed cells. For each TF \(p\), we observe samples from a control distribution \(P_0\) and a perturbed distribution \(P_p\), but we do not observe which genomic loci mediate the perturbation response.
+
+We encode cells into a latent space using a cell encoder \(E_{\mathrm{cell}}\), such as \scarf:
+\begin{equation}
+    z = E_{\mathrm{cell}}(x) \in \mathbb{R}^{d_z}.
+\end{equation}
+The downstream goal is to learn a conditional vector field that transports control-cell latents \(z_0\) toward TF-perturbed latents \(z_1 \sim P_p\):
+\begin{equation}
+    \frac{d z_t}{dt} = v_\theta(z_t, t, z_0, \mu_{0p}), \qquad t \in [0,1],
+\end{equation}
+where \(\mu_{0p}\) is a TF- and cell-state-conditioned perturbation representation produced by associative retrieval over genomic loci.
+
+The key latent variable in the model is the locus activation distribution
+\begin{equation}
+    \alpha_{0pi} = P_\theta(i \mid z_0, s_p), \qquad i = 1,\ldots,N,
+\end{equation}
+where \(N\) is the number of candidate genomic loci. The model is not trained with labels for \(\alpha_{0pi}\). Instead, \(\alpha_{0pi}\) is induced by the perturbation transport objective. This is the weakly supervised multiple-instance structure: the bag is the candidate locus set, the query is the TF isoform sequence, and the bag-level target is the aggregate transcriptional response.
+
+\section{Method}
+
+\subsection{Genome-indexed regulatory memory}
+
+We partition the genome into \(N\) candidate loci \(\{g_i\}_{i=1}^N\). A locus may be defined as a fixed-width genomic window, an accessible peak, a promoter/enhancer candidate, or a gene-linked regulatory region. In the base model, each locus is encoded using a frozen genome foundation model:
+\begin{equation}
+    h_i^{\mathrm{AG}} = E_{\mathrm{AG}}(g_i) \in \mathbb{R}^{d_{AG}},
+\end{equation}
+where \(E_{\mathrm{AG}}\) denotes \ag. \ag\ provides a regulatory sequence prior because it predicts functional genomic tracks across modalities including expression, accessibility, histone marks, TF binding, chromatin contacts, and splicing-related outputs \citep{avsec2026}.
+
+\hoptf\ constructs a task-adapted key-value memory from these pretrained locus embeddings:
+\begin{align}
+    k_i &= W_K h_i^{\mathrm{AG}}, \\
+    v_i &= W_V h_i^{\mathrm{AG}}.
+\end{align}
+Here \(k_i\) is used for TF-locus compatibility scoring, while \(v_i\) is the representation retrieved and pooled by the model. A tied-memory variant sets \(W_K = W_V\) or directly uses \(k_i=v_i\). An untied variant allows the scoring representation and retrieved representation to differ.
+
+\placeholder{Implementation choice to finalize: define the exact locus unit. Options: fixed-width windows, ATAC peaks, promoter/enhancer candidates, gene-linked windows, or \ag\ context blocks. State final \(N\), window length \(L\), genome build, overlap/stride, and whether coding regions are excluded or treated separately.}
+
+\subsection{TF protein sequence query}
+
+For each TF isoform \(p\), we compute a protein language model embedding from its amino-acid sequence:
+\begin{equation}
+    e_p = E_{\mathrm{prot}}(s_p),
+\end{equation}
+where \(E_{\mathrm{prot}}\) is \esm\ or another protein language model. A learned projection maps this embedding into the associative retrieval space:
+\begin{equation}
+    q_p = W_Q e_p \in \mathbb{R}^{d}.
+\end{equation}
+This query represents the sequence-derived molecular identity of the perturbed TF isoform. Unlike perturbation-ID embeddings, this representation can in principle distinguish isoforms, sequence variants, domain truncations, or mutants if their protein sequences are provided.
+
+\placeholder{Implementation choice to finalize: specify protein encoder version, pooling strategy, whether embeddings are frozen or fine-tuned, and how isoforms with missing or ambiguous sequences are handled.}
+
+\subsection{Cell-state modulation of retrieval}
+
+The retrieval distribution may be global, cluster-specific, or cell-state-specific. The most conservative base model uses no cell-state-specific mask:
+\begin{equation}
+    r_{pi} = \beta q_p^\top k_i.
+\end{equation}
+This retrieves TF-compatible loci from a genome-wide memory bank.
+
+A cell-state-conditioned version adds a retrieval bias or mask derived from the cell latent \(z_0\):
+\begin{equation}
+    r_{0pi} = \beta q_p^\top k_i + b_\eta(z_0, h_i^{\mathrm{AG}}),
+\end{equation}
+where \(b_\eta\) may represent a learned cell-state/locus compatibility score, a cluster-specific accessibility prior, or a log-accessibility mask. If \(m_i(z_0) \in \{0,1\}\) denotes a hard accessibility mask, this can be written as
+\begin{equation}
+    r_{0pi} = \begin{cases}
+        \beta q_p^\top k_i, & m_i(z_0)=1,\\
+        -\infty, & m_i(z_0)=0.
+    \end{cases}
+\end{equation}
+In practice, hard cell-specific masks may be unstable or unrealistic if accessibility is not observed for every target cell. A cluster-specific or cell-type-specific accessibility bias may be a more robust intermediate design:
+\begin{equation}
+    r_{cpi} = \beta q_p^\top k_i + \lambda A_{ci},
+\end{equation}
+where \(c\) is a cluster in \scarf\ latent space and \(A_{ci}\) is the average accessibility or availability prior for locus \(i\) in cluster \(c\).
+
+\placeholder{Implementation choice to finalize: specify whether the base experiment uses no mask, cluster-specific accessibility bias, or cell-specific accessibility estimates. If accessibility is predicted from \scarf, state how predicted accessibility is calibrated and mapped onto \ag\ loci.}
+
+\subsection{Associative retrieval over genomic loci}
+
+Given retrieval scores \(r_{0pi}\), \hoptf\ computes a soft activation pattern over loci:
+\begin{equation}
+    \alpha_{0pi} = \frac{\exp(r_{0pi})}{\sum_{j=1}^{N}\exp(r_{0pj})}.
+\end{equation}
+The retrieved regulatory-context representation is
+\begin{equation}
+    \mu_{0p} = \sum_{i=1}^{N} \alpha_{0pi} v_i.
+\end{equation}
+In matrix form, with \(K \in \mathbb{R}^{N \times d}\) and \(V \in \mathbb{R}^{N \times d_v}\), the unmasked version is
+\begin{equation}
+    \alpha_{p}=\mathrm{softmax}(\beta K q_p), \qquad \mu_p = V^\top \alpha_p.
+\end{equation}
+If values are tied to keys, \(V=K\), recovering the simpler expression
+\begin{equation}
+    \mu_p = K^\top \mathrm{softmax}(\beta K q_p).
+\end{equation}
+This is the associative-memory component of \hoptf. Genomic loci are stored patterns, the TF embedding is the retrieval cue, and \(\mu_{0p}\) is the retrieved regulatory-context prototype used for perturbation prediction.
+
+The temperature parameter \(\beta\) controls retrieval sharpness. Low \(\beta\) yields diffuse averaging across many loci, while high \(\beta\) concentrates mass on a smaller set of loci. We treat \(\beta\) as an inverse-temperature parameter. It may be biologically suggestive of binding selectivity or dosage-dependent sharpness, but we do not assume a direct quantitative equivalence to TF concentration without dose-calibrated data.
+
+\subsection{Conditional flow field for perturbation response}
+
+The retrieved representation \(\mu_{0p}\) conditions a time-dependent vector field in cell-state latent space:
+\begin{equation}
+    \frac{d z_t}{dt} = v_\theta(z_t, t, z_0, \mu_{0p}).
+\end{equation}
+During training, we use conditional flow matching with minibatch optimal transport couplings \citep{tong2024cfm,tong2024sf2m}. For a TF perturbation \(p\), let \((z_0,z_1)\) be a paired sample from a minibatch OT coupling between control latents and perturbed latents. For \(t \sim \mathrm{Uniform}(0,1)\), define a linear interpolation
+\begin{equation}
+    z_t = (1-t)z_0 + t z_1,
+\end{equation}
+with target velocity
+\begin{equation}
+    u_t = z_1 - z_0.
+\end{equation}
+The flow matching objective is
+\begin{equation}
+    \mathcal{L}_{\mathrm{CFM}} = \mathbb{E}_{p,(z_0,z_1),t}\left[\left\|v_\theta(z_t,t,z_0,\mu_{0p}) - (z_1-z_0)\right\|_2^2\right].
+\end{equation}
+At inference, given a control cell \(x_0\), we compute \(z_0=E_{\mathrm{cell}}(x_0)\), retrieve \(\mu_{0p}\), and integrate the learned ODE from \(t=0\) to \(t=1\) to obtain a predicted perturbed latent \(\hat{z}_1\). This latent can be decoded back to expression space if a decoder is available.
+
+\placeholder{Implementation choice to finalize: specify whether the model predicts latent endpoints, latent velocity fields, decoded gene expression, or all three. State whether \scarf\ is frozen, whether a decoder is used, and how the latent predictions are mapped to gene-level evaluation metrics.}
+
+\subsection{End-to-end differentiability and weak supervision}
+
+The retrieval module is differentiable from retrieval scores through the downstream flow objective. Therefore, even though the model does not observe locus-level labels, gradients from the perturbation-response loss can shape the TF query projection, locus key/value projections, cell-state retrieval bias, and downstream flow model:
+\begin{equation}
+    \mathcal{L}_{\mathrm{CFM}} \rightarrow v_\theta \rightarrow \mu_{0p} \rightarrow \alpha_{0pi} \rightarrow (q_p,k_i,v_i,b_\eta).
+\end{equation}
+If \ag, \esm, or \scarf\ are frozen, gradients do not update those foundation model parameters. The base framing is therefore not full fine-tuning of \ag. Instead, \hoptf\ learns a task-adapted associative regulatory memory initialized by \ag-derived locus embeddings. A natural extension is to allow adapter or residual updates to the key/value memory slots:
+\begin{align}
+    k_i &= W_K h_i^{\mathrm{AG}} + \Delta k_i,\\
+    v_i &= W_V h_i^{\mathrm{AG}} + \Delta v_i,
+\end{align}
+with regularization on \(\Delta k_i\) and \(\Delta v_i\) to preserve the pretrained regulatory prior.
+
+\placeholder{Implementation choice to finalize: specify which components are trained, frozen, or adapter-tuned. If residual memory updates are used, report the regularization strength and whether retrieval diagnostics are robust to these updates.}
+
+\subsection{Retrieval diagnostics}
+
+Because the retrieval distribution is an object of interpretation, not just a hidden layer, we evaluate it directly. For each cell/TF pair, define retrieval entropy
+\begin{equation}
+    H(\alpha_{0p}) = -\sum_i \alpha_{0pi}\log \alpha_{0pi}
+\end{equation}
+and effective number of retrieved loci
+\begin{equation}
+    N_{\mathrm{eff}}(\alpha_{0p}) = \exp(H(\alpha_{0p})).
+\end{equation}
+We also compute top-\(k\) mass
+\begin{equation}
+    M_k(\alpha_{0p}) = \sum_{i \in \mathrm{TopK}(\alpha_{0p})} \alpha_{0pi}.
+\end{equation}
+These metrics quantify whether retrieval is diffuse, subset-like, or collapsed. Biological diagnostics include motif enrichment among top-retrieved loci, accessibility consistency, overlap with external ChIP-seq peaks when available, and proximity or linkage to genes with altered expression after TF overexpression.
+
+\section{Experimental Design}
+
+\subsection{Datasets}
+
+\paragraph{Primary perturbation data.}
+The main training data are planned to come from the TF Atlas of directed differentiation, which profiles TF isoform overexpression in H1 hESCs at single-cell resolution \citep{joung2023}. Each perturbation is associated with a TF isoform sequence and a set of observed perturbed cells. Control cells define the source distribution for flow matching.
+
+\placeholder{Fill in: number of control cells, number of perturbation cells, number of TF isoforms after filtering, number of genes retained, preprocessing steps, quality-control thresholds, train/validation/test splits, and whether perturbations are split by TF family, held-out isoform, held-out domain, or random TF.}
+
+\paragraph{Genomic locus data.}
+Candidate loci are represented by \ag-derived embeddings. Loci may be defined by fixed genomic windows, accessible peaks, promoter/enhancer annotations, or gene-linked windows.
+
+\placeholder{Fill in: genome build, locus definition, window size, stride, number of loci \(N\), \ag\ embedding extraction procedure, whether embeddings are pooled across tracks/layers, and whether locus values include annotations beyond \ag.}
+
+\paragraph{Cell-state representation.}
+Cells are embedded into a latent space using \scarf\ or another single-cell encoder. In cell-contextualized retrieval variants, cell state may define an accessibility prior or cluster identity.
+
+\placeholder{Fill in: \scarf\ model version, input modality, latent dimension, whether RNA-only or RNA+ATAC is used, clustering method, number of clusters, and whether accessibility is measured or predicted.}
+
+\subsection{Evaluation splits}
+
+We propose several levels of generalization:
+\begin{enumerate}
+    \item \textbf{Random held-out cells within seen TFs:} tests whether the flow model fits observed perturbation distributions.
+    \item \textbf{Held-out TF isoforms:} tests sequence-conditioned generalization to TFs not seen in training.
+    \item \textbf{Held-out TF families or domains:} tests harder extrapolation across DNA-binding families.
+    \item \textbf{Held-out cell-state clusters:} if multiple cell states are used, tests whether retrieval and transport generalize across cellular context.
+\end{enumerate}
+
+\placeholder{Choose final split strategy. For a class report, include at least one perturbation-level split rather than only a random cell-level split, because random cell splits can overstate performance.}
+
+\subsection{Baselines}
+
+The following baselines are intended to separate biological signal from architecture and artifacts:
+
+\begin{table}[H]
+\centering
+\caption{Planned baselines and their purpose.}
+\label{tab:baselines}
+\begin{tabular}{p{0.25\linewidth}p{0.38\linewidth}p{0.27\linewidth}}
+\toprule
+\textbf{Baseline} & \textbf{Description} & \textbf{Question tested} \\
+\midrule
+Control / no-perturbation & Predict no movement from control latent. & Is any perturbation modeling learned? \\
+Average TF effect & Use the mean perturbation shift across training TFs. & Are gains TF-specific or just average response? \\
+TF ID embedding & Replace protein sequence with a learned TF identity embedding. & Does protein sequence add value? \\
+ESM-only flow & Condition flow on TF protein embedding without genomic memory retrieval. & Does locus retrieval add value beyond protein sequence? \\
+Random / shuffled memory & Replace \ag\ loci with random or shuffled locus embeddings. & Does regulatory memory carry useful signal? \\
+Shuffled TF sequence & Query memory using shuffled or mismatched TF embeddings. & Are retrieval weights TF-specific? \\
+No cell-state bias & Remove cell-state or cluster-specific accessibility bias. & Does cell-contextualization matter? \\
+Length / ORF / cell-count covariates & Predict from sequence length, ORF length, and perturbation cell count. & Are results driven by artifacts? \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\placeholder{Insert final implemented baselines. Mark any planned but not completed baselines clearly.}
+
+\subsection{Endpoint prediction metrics}
+
+We evaluate perturbation prediction in latent and gene-expression space:
+\begin{itemize}
+    \item latent MSE or cosine distance between predicted and observed perturbed latents;
+    \item Pearson/Spearman correlation between predicted and observed mean expression shifts;
+    \item correlation restricted to differentially expressed genes;
+    \item distributional metrics such as MMD or Wasserstein distance between predicted and observed perturbed-cell distributions;
+    \item top-\(k\) differential-expression recovery or direction accuracy.
+\end{itemize}
+
+\placeholder{Define final primary metric. Suggested: use one main metric for endpoint prediction and separate diagnostics for retrieval; avoid overloading the paper with too many metrics.}
+
+\subsection{Retrieval and biological validation metrics}
+
+We evaluate the locus activation distribution independently of endpoint prediction:
+\begin{itemize}
+    \item retrieval entropy \(H(\alpha)\), effective number of loci \(N_{\mathrm{eff}}\), and top-\(k\) mass;
+    \item beta sensitivity curves showing diffuse, subset, and concentrated retrieval regimes;
+    \item motif enrichment among top-retrieved loci using matched GC/accessibility/length backgrounds;
+    \item overlap with external ChIP-seq peaks for the same or related TFs when available;
+    \item enrichment near genes whose expression changes after TF overexpression;
+    \item stability of retrieved loci across nearby cells or clusters.
+\end{itemize}
+
+\placeholder{Specify motif enrichment tool, motif database, background construction, top-\(k\) thresholds, and multiple-testing correction.}
+
+\section{Results}
+
+\subsection{Endpoint prediction performance}
+
+\placeholder{Insert endpoint prediction table. Include at minimum: control/no-perturbation, average TF effect, ESM-only, HopTF without cell-state bias, HopTF with chosen cell-state conditioning if implemented, and any artifact/covariate baselines. Report mean and confidence interval across held-out TFs or bootstrap resamples.}
+
+\begin{table}[H]
+\centering
+\caption{Placeholder endpoint prediction results. Replace bracketed entries with final numbers.}
+\label{tab:endpoint_results}
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Model} & \textbf{Latent MSE} & \textbf{Mean-shift Pearson} & \textbf{DE-gene Pearson} & \textbf{MMD / OT distance} \\
+\midrule
+Control / no perturbation & [TODO] & [TODO] & [TODO] & [TODO] \\
+Average TF effect & [TODO] & [TODO] & [TODO] & [TODO] \\
+TF ID embedding & [TODO] & [TODO] & [TODO] & [TODO] \\
+ESM-only flow & [TODO] & [TODO] & [TODO] & [TODO] \\
+HopTF, unmasked memory & [TODO] & [TODO] & [TODO] & [TODO] \\
+HopTF, cluster/cell-state bias & [TODO] & [TODO] & [TODO] & [TODO] \\
+Artifact covariate baseline & [TODO] & [TODO] & [TODO] & [TODO] \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
+
+\interpretation{Summarize whether \hoptf\ improves endpoint prediction, and be explicit if improvements are modest or absent. If simple baselines perform similarly, frame the method as a retrieval/hypothesis-generation architecture rather than an endpoint SOTA model.}
+
+\figplaceholder{endpoint_latent}{Predicted versus observed perturbation shifts}{Plot to create. Options: scatter of predicted versus observed mean latent/expression shifts across TFs; UMAP/SCARF latent space showing control, observed perturbed, and predicted perturbed distributions for selected TFs; or flow trajectories for representative TFs.}
+
+\subsection{Ablation studies}
+
+\placeholder{Insert ablation results for key/value tying, random memory, ESM-only, no beta tuning, no cell-state bias, and shuffled query.}
+
+\begin{table}[H]
+\centering
+\caption{Placeholder ablation table.}
+\label{tab:ablation_results}
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{lccp{0.35\linewidth}}
+\toprule
+\textbf{Variant} & \textbf{Primary metric} & \textbf{Retrieval diagnostic} & \textbf{Interpretation} \\
+\midrule
+Full model & [TODO] & [TODO] & [TODO] \\
+No memory / ESM-only & [TODO] & N/A & [TODO] \\
+Random memory & [TODO] & [TODO] & [TODO] \\
+Tied \(K=V\) & [TODO] & [TODO] & [TODO] \\
+Untied \(K,V\) & [TODO] & [TODO] & [TODO] \\
+No cell-state bias & [TODO] & [TODO] & [TODO] \\
+Shuffled TF query & [TODO] & [TODO] & [TODO] \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
+
+\interpretation{State which architectural components are actually needed. In particular, emphasize whether sequence query and \ag\ memory both contribute beyond easier shortcuts.}
+
+\subsection{Beta controls retrieval regime}
+
+\placeholder{Insert beta sweep results. Report endpoint metric, retrieval entropy, effective number of loci, top-\(k\) mass, and motif enrichment across beta values.}
+
+\figplaceholder{beta_sweep}{Effect of retrieval temperature \(\beta\)}{Plot to create. X-axis: \(\beta\). Y-axes in separate panels: endpoint metric, entropy/effective loci, top-\(k\) mass, motif enrichment. Expected qualitative regimes: low \(\beta\) diffuse averaging, intermediate \(\beta\) subset retrieval, high \(\beta\) collapse.}
+
+\interpretation{Avoid claiming that \(\beta\) is quantitatively equivalent to TF concentration unless dose-calibrated data are available. Safe phrasing: \(\beta\) is an inverse temperature controlling retrieval concentration and may serve as an analog of selectivity or dosage-dependent sharpness.}
+
+\subsection{Retrieval distributions identify candidate compatible regulatory loci}
+
+\placeholder{Insert retrieval diagnostics. For selected TFs, show top-retrieved loci, nearby genes, motif enrichment, accessibility, and expression changes in linked targets.}
+
+\begin{table}[H]
+\centering
+\caption{Placeholder TF-specific retrieval case studies.}
+\label{tab:case_studies}
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{lp{0.25\linewidth}p{0.25\linewidth}p{0.25\linewidth}}
+\toprule
+\textbf{TF} & \textbf{Top retrieved loci / annotations} & \textbf{Motif or ChIP evidence} & \textbf{Perturbation-response interpretation} \\
+\midrule
+\texttt{[TF 1]} & [TODO] & [TODO] & [TODO] \\
+\texttt{[TF 2]} & [TODO] & [TODO] & [TODO] \\
+\texttt{[TF 3]} & [TODO] & [TODO] & [TODO] \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
+
+\figplaceholder{retrieval_tracks}{Interpretable activation patterns over loci}{Plot to create. Genome browser-style track or Manhattan-like plot showing retrieval weights over loci for selected TFs and cell-state clusters. Add tracks for accessibility, motif hits, nearby genes, and observed expression changes if available.}
+
+\interpretation{Use cautious language: high-weight loci are candidate compatible regulatory contexts. They are not validated binding sites unless supported by independent evidence.}
+
+\subsection{Motif enrichment and external binding validation}
+
+\placeholder{Insert motif enrichment analysis. Use matched background loci to control for GC content, accessibility, sequence length, and mappability. Report enrichment for cognate motifs and related TF-family motifs.}
+
+\begin{table}[H]
+\centering
+\caption{Placeholder motif enrichment results for top-retrieved loci.}
+\label{tab:motif_results}
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{lcccc}
+\toprule
+\textbf{TF / family} & \textbf{Top-\(k\)} & \textbf{Cognate motif enrichment} & \textbf{Adjusted \(p\)-value} & \textbf{Matched background} \\
+\midrule
+\texttt{[TF 1]} & [TODO] & [TODO] & [TODO] & [TODO] \\
+\texttt{[TF 2]} & [TODO] & [TODO] & [TODO] & [TODO] \\
+\texttt{[TF 3]} & [TODO] & [TODO] & [TODO] & [TODO] \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
+
+\interpretation{If motif enrichment is weak, do not force a mechanistic interpretation. Possible explanations include inadequate memory embeddings, missing cell-state context, non-DNA-binding cofactors, low-quality TF sequence embeddings, or endpoint supervision dominated by expression artifacts.}
+
+\subsection{Artifact and confound controls}
+
+\placeholder{Insert artifact-control results. Suggested covariates: TF ORF length, protein length, number of cells per perturbation, expression abundance, baseline TF expression, perturbation barcode abundance, and family/domain labels.}
+
+\begin{table}[H]
+\centering
+\caption{Placeholder artifact-control results.}
+\label{tab:artifact_results}
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{lccp{0.35\linewidth}}
+\toprule
+\textbf{Control} & \textbf{Endpoint metric} & \textbf{Retrieval metric} & \textbf{Conclusion} \\
+\midrule
+Protein length only & [TODO] & N/A & [TODO] \\
+ORF length only & [TODO] & N/A & [TODO] \\
+Cell count per perturbation & [TODO] & N/A & [TODO] \\
+Random TF labels & [TODO] & [TODO] & [TODO] \\
+Family-label leakage check & [TODO] & [TODO] & [TODO] \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
+
+\interpretation{This section is central. If artifacts explain a large fraction of endpoint performance, emphasize retrieval diagnostics and frame the model as a prototype for biologically constrained hypothesis generation rather than a validated predictive method.}
+
+\section{Discussion}
+
+\subsection{What \hoptf\ adds beyond ``slapping on a transformer''}
+
+\hoptf\ does not claim novelty from the softmax operation itself. The retrieval layer is mathematically related to attention, and modern Hopfield networks explicitly connect attention to associative memory. The contribution is the biological decomposition: protein sequence provides the query, genomic loci provide the addressable memory, retrieval produces a regulatory-context hypothesis, and a conditional flow model maps that retrieved representation to a predicted cell-state shift. A generic transformer perturbation model may improve expressivity, but it typically does not specify the biological meaning of queries, keys, values, masks, retrieval temperatures, or retrieval diagnostics.
+
+This distinction matters because \hoptf\ exposes a falsifiable intermediate object. The locus activation distribution can be audited against motifs, accessibility, target-gene annotations, ChIP-seq evidence, and artifact controls. Endpoint prediction alone is not sufficient evidence that the model has learned biologically meaningful regulation. The retrieval distribution is therefore both the mechanism and the liability of the model: it creates interpretability, but it must be validated.
+
+\subsection{Associative memory as a modeling lens}
+
+The memory in \hoptf\ is the locus-indexed key/value bank, not the transport predictor. The transport predictor is the downstream flow module that uses the retrieved memory state. In associative-memory terms, genomic locus embeddings are stored patterns, the TF isoform embedding is the retrieval cue, and \(\mu_p\) is the retrieved regulatory-context prototype. This framing connects \hoptf\ to the memory-model side of the course. The model studies how a biological perturbation cue can retrieve information from a large structured memory under weak aggregate supervision.
+
+The model is not a continual-learning algorithm in its current form. However, the explicit memory-bank formulation suggests continual extensions. New cell types, accessibility profiles, perturbation datasets, or genomic annotations could update or augment the regulatory memory while preserving the retrieval-and-transport interface. Robust continual updating would still require mechanisms such as replay, regularization, adapters, or frozen base memories to avoid catastrophic forgetting.
+
+\subsection{Biological interpretation and hypothesis generation}
+
+\hoptf\ is best interpreted as a hypothesis-generation model. We tolerate false positives more than false negatives if the goal is to nominate candidate compatible loci for follow-up analysis. This changes the evaluation standard. The model does not need every high-weight locus to be causal, but it should enrich for plausible regulatory contexts, avoid obvious artifacts, and recover known motifs or target programs when strong prior evidence exists.
+
+A successful result would look like this: endpoint predictions are competitive with simple baselines; retrieval is not collapsed or random; top-retrieved loci are enriched for cognate or family-level motifs; retrieved loci are plausible under accessibility or cluster context; and case studies produce testable regulatory hypotheses. An unsuccessful but still informative result would show that endpoint prediction is driven by sequence length, TF family, or dataset artifacts rather than regulatory retrieval. In that case, \hoptf\ would still clarify what additional supervision or cell-state information is needed.
+
+\subsection{Limitations}
+
+Several limitations should be explicit.
+\begin{enumerate}
+    \item \textbf{Weak supervision.} The model is trained on aggregate perturbation responses, not locus-level binding or causal regulatory labels. Retrieval weights are therefore not binding probabilities.
+    \item \textbf{Cell-state context.} Fully cell-specific accessibility masking may be unrealistic if accessibility is not observed or accurately inferred. Cluster-specific biases may be more stable but less granular.
+    \item \textbf{Pretrained embedding dependence.} If \ag\ or protein embeddings fail to encode the relevant TF-locus compatibility information, the retrieval module may learn shortcuts.
+    \item \textbf{Dataset artifacts.} Perturbation cell counts, ORF length, TF family identity, baseline expression, and barcode effects may explain endpoint metrics unless explicitly controlled.
+    \item \textbf{Computational scale.} Genome-wide retrieval over millions of loci may require approximate retrieval, candidate pruning, hierarchical memory, or region-level prefiltering.
+    \item \textbf{Causal ambiguity.} Even motif-enriched high-retrieval loci may be passengers or correlated contexts rather than causal mediators of the transcriptional response.
+\end{enumerate}
+
+\subsection{Future directions}
+
+Natural extensions include adapter-based task adaptation of \ag-derived memory slots, hierarchical retrieval from chromosomes to loci, explicit enhancer-gene linking in value vectors, auxiliary motif or ChIP supervision, dose-conditioned retrieval temperature calibration, and continual updates to the memory bank as new cell types and perturbation datasets become available. A stronger biological model would also distinguish direct TF binding, cofactor-mediated regulation, chromatin remodeling, and downstream secondary response programs.
+
+\section{Conclusion}
+
+\hoptf\ formulates TF perturbation prediction as sequence-conditioned associative retrieval over a genome-indexed regulatory memory. A TF isoform sequence embedding queries \ag-derived locus embeddings, optionally modulated by cell-state context, and the resulting activation distribution over loci is pooled into a perturbation-conditioning representation \(\mu_p\). This representation conditions a flow model that predicts the transport from control to TF-perturbed cell states. The model is end-to-end differentiable through retrieval and response prediction, allowing aggregate perturbation supervision to shape the addressing function even without locus-level labels. The central claim is therefore not that attention alone is novel, but that biologically specified associative retrieval creates an interpretable, falsifiable intermediate between TF sequence and cell-state response.
+
+\placeholder{Replace with final conclusion after experiments. Include one sentence on endpoint prediction, one sentence on retrieval diagnostics, and one sentence on the strongest remaining limitation.}
+
+\clearpage
+\appendix
+
+\section{Appendix: Suggested Figures}
+
+\begin{enumerate}
+    \item \textbf{Figure 1: Model overview.} TF sequence query, \ag\ locus memory, cell-state bias/mask, retrieval weights, \(\mu_p\), conditional flow field.
+    \item \textbf{Figure 2: Flow prediction.} Control, observed perturbed, and predicted perturbed latent distributions for selected TFs.
+    \item \textbf{Figure 3: Beta sweep.} Endpoint performance and retrieval concentration across \(\beta\).
+    \item \textbf{Figure 4: Retrieval tracks.} Top-retrieved loci for selected TFs with motif/accessibility/target-gene annotations.
+    \item \textbf{Figure 5: Artifact controls.} Performance of length/cell-count/shuffled-query baselines.
+\end{enumerate}
+
+\section{Appendix: Reporting Checklist}
+
+\begin{itemize}
+    \item State whether \ag, \esm, and \scarf\ are frozen, adapter-tuned, or fully fine-tuned.
+    \item State whether values are tied to keys.
+    \item State whether retrieval is unmasked, cluster-masked, or cell-specific.
+    \item Report primary endpoint metric and confidence intervals.
+    \item Report retrieval entropy, top-\(k\) mass, and beta sensitivity.
+    \item Include at least one artifact baseline.
+    \item Avoid interpreting retrieval weights as binding sites without external validation.
+\end{itemize}
+
+\begin{thebibliography}{99}
+
+\bibitem[Ahlmann-Eltze et~al.(2025)]{ahlmanneltze2025}
+Ahlmann-Eltze, C., et al. (2025).
+\newblock Deep-learning-based gene perturbation effect prediction does not yet outperform simple baselines.
+\newblock \emph{Nature Methods}.
+
+\bibitem[Avsec et~al.(2026)]{avsec2026}
+Avsec, Z., Latysheva, N., Cheng, J., Novati, G., Taylor, K. R., Ward, T., Bycroft, C., Nicolaisen, L., Arvaniti, E., Pan, J., et al. (2026).
+\newblock Advancing regulatory variant effect prediction with AlphaGenome.
+\newblock \emph{Nature}, 649:1206--1218.
+
+\bibitem[Basnet et~al.(2026)]{basnet2026}
+Basnet, S., et al. (2026).
+\newblock Integrating protein and DNA embeddings for improving transcription factor binding prediction.
+\newblock \emph{NAR Genomics and Bioinformatics}.
+
+\bibitem[Bravo Gonz\'alez-Blas et~al.(2023)]{gonzalezblas2023}
+Bravo Gonz\'alez-Blas, C., De Winter, S., Hulselmans, G., Hecker, N., Matetovici, I., Christiaens, V., Poovathingal, S., Wouters, J., Aibar, S., and Aerts, S. (2023).
+\newblock SCENIC+: single-cell multiomic inference of enhancers and gene regulatory networks.
+\newblock \emph{Nature Methods}, 20:1355--1367.
+
+\bibitem[Bunne et~al.(2023)]{bunne2023}
+Bunne, C., Stark, S. G., Gut, G., del Castillo, J. S., Levesque, M., Lehmann, K.-V., Pelkmans, L., Krause, A., and R\"atsch, G. (2023).
+\newblock Learning single-cell perturbation responses using neural optimal transport.
+\newblock \emph{Nature Methods}, 20:1759--1768.
+
+\bibitem[Cui et~al.(2024)]{cui2024}
+Cui, H., Wang, C., Maan, H., Pang, K., Luo, F., Wang, N., and Wang, B. (2024).
+\newblock scGPT: toward building a foundation model for single-cell biology.
+\newblock \emph{Nature Methods}, 21:1470--1480.
+
+\bibitem[EvolutionaryScale(2024)]{evolutionaryscale2024}
+EvolutionaryScale (2024).
+\newblock ESM Cambrian: revealing the mysteries of proteins with unsupervised learning.
+\newblock Technical report / model release.
+
+\bibitem[Fu et~al.(2026)]{fu2026}
+Fu, B., Dasoulas, G., Gabbita, S., Lin, X., Gao, S., Su, X., Ghosh, S., and Zitnik, M. (2026).
+\newblock STRAND: sequence-conditioned transport for single-cell perturbations.
+\newblock \emph{arXiv preprint arXiv:2602.10156}.
+
+\bibitem[Hopfield(1982)]{hopfield1982}
+Hopfield, J. J. (1982).
+\newblock Neural networks and physical systems with emergent collective computational abilities.
+\newblock \emph{Proceedings of the National Academy of Sciences}, 79(8):2554--2558.
+
+\bibitem[Joung et~al.(2023)]{joung2023}
+Joung, J., Ma, S., Tay, T., Geiger-Schuller, K. R., Kirchgatterer, P. C., Verdine, V. K., Guo, B., Arias-Garcia, M. A., Allen, W. E., Singh, A., et al. (2023).
+\newblock A transcription factor atlas of directed differentiation.
+\newblock \emph{Cell}, 186(1):209--229.e26.
+
+\bibitem[Kamimoto et~al.(2023)]{kamimoto2023}
+Kamimoto, K., Stringa, B., Hoffmann, C. M., Jindal, K., Solnica-Krezel, L., and Morris, S. A. (2023).
+\newblock Dissecting cell identity via network inference and in silico gene perturbation.
+\newblock \emph{Nature}, 614:742--751.
+
+\bibitem[Krotov and Hopfield(2016)]{krotov2016}
+Krotov, D. and Hopfield, J. J. (2016).
+\newblock Dense associative memory for pattern recognition.
+\newblock In \emph{Advances in Neural Information Processing Systems}.
+
+\bibitem[Liu et~al.(2025)]{scarf2025}
+Liu, G., Wang, T., Zhao, Y., Cai, Q., Wang, X., Wen, Z., Wang, Y., Lin, L., Zhao, Y., Yang, G., and Chen, J. (2025).
+\newblock SCARF: a single cell ATAC-seq and RNA-seq foundation model.
+\newblock \emph{bioRxiv preprint}.
+
+\bibitem[Liu et~al.(2026)]{liutfbindformer2026}
+Liu, P., Wang, L., Basnet, S., Cheng, J., et al. (2026).
+\newblock TFBindFormer: a cross-attention transformer for transcription factor-DNA binding prediction.
+\newblock \emph{bioRxiv preprint}.
+
+\bibitem[Ramsauer et~al.(2021)]{ramsauer2021}
+Ramsauer, H., Sch\"afl, B., Lehner, J., Seidl, P., Widrich, M., Adler, T., Gruber, L., Holzleitner, M., Pavlovi\'c, M., Sandve, G. K., et al. (2021).
+\newblock Hopfield networks is all you need.
+\newblock In \emph{International Conference on Learning Representations}.
+
+\bibitem[Roohani et~al.(2023)]{roohani2023}
+Roohani, Y., Huang, K., and Leskovec, J. (2023).
+\newblock Predicting transcriptional outcomes of novel multigene perturbations with GEARS.
+\newblock \emph{Nature Biotechnology}, 42:927--935.
+
+\bibitem[Tong et~al.(2024a)]{tong2024cfm}
+Tong, A., FATRAS, K., Malkin, N., Huguet, G., Zhang, Y., Rector-Brooks, J., Wolf, G., and Bengio, Y. (2024a).
+\newblock Improving and generalizing flow-based generative models with minibatch optimal transport.
+\newblock \emph{Transactions on Machine Learning Research}.
+
+\bibitem[Tong et~al.(2024b)]{tong2024sf2m}
+Tong, A., Malkin, N., Fatras, K., Atanackovic, L., Zhang, Y., Huguet, G., Wolf, G., and Bengio, Y. (2024b).
+\newblock Simulation-free Schr\"odinger bridges via score and flow matching.
+\newblock In \emph{Proceedings of The 27th International Conference on Artificial Intelligence and Statistics}.
+
+\bibitem[Vaswani et~al.(2017)]{vaswani2017}
+Vaswani, A., Shazeer, N., Parmar, N., Uszkoreit, J., Jones, L., Gomez, A. N., Kaiser, \L{}., and Polosukhin, I. (2017).
+\newblock Attention is all you need.
+\newblock In \emph{Advances in Neural Information Processing Systems}.
+
+\bibitem[Widrich et~al.(2020)]{widrich2020}
+Widrich, M., Sch\"afl, B., Ramsauer, H., Pavlovi\'c, M., Gruber, L., Holzleitner, M., Brandstetter, J., Sandve, G. K., Greiff, V., Hochreiter, S., and Klambauer, G. (2020).
+\newblock Modern Hopfield networks and attention for immune repertoire classification.
+\newblock \emph{arXiv preprint arXiv:2007.13505}.
+
+\end{thebibliography}
+
+\end{document}
