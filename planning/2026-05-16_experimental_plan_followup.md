@@ -89,6 +89,29 @@ The random substitutions are not meant to represent benign biology. They answer 
 
 ### Plots And Axes
 
+#### 2026-05-17 Plot Update
+
+For the matched-control plot variants requested after reviewing Experiment 1, the paired difference should be treated as an absolute value. The useful distinction here is "little activity-change difference" versus "large activity-change difference"; the sign of `pathogenic - matched control` is not the main question for these views.
+
+Use:
+
+`absolute_activity_change_delta_pct = abs(pathogenic_abs_activity_change_pct - control_median_abs_activity_change_pct)`
+
+Updated plot outputs are in:
+
+`tmp/hoptf_followup_full_20260517/results/matched_variant_retrieval/absolute_delta_plots/`
+
+The generated files are:
+
+- `matched_activity_change_lines_colored_by_abs_delta.png`
+- `absolute_activity_delta_distributions_with_thresholds.png`
+- `matched_activity_change_by_abs_delta_mode_4panel.png`
+- `absolute_delta_mode_thresholds.json`
+- `variant_activity_differences_with_absolute_delta.csv`
+- `absolute_delta_plot_update.md`
+
+Automatic thresholding was rerun on the absolute paired differences. The called thresholds are 2.86% for matched benign controls and 2.55% for matched random controls. These split the matched benign comparison into 113 little-difference rows and 45 large-difference rows, and the matched random comparison into 147 little-difference rows and 42 large-difference rows.
+
 1. **Matched activity-change plot**
    - x-axis: variant/control group: pathogenic real, matched benign, matched random.
    - y-axis: absolute predicted perturbed-cell state activity change from wild type.
