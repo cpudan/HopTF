@@ -1,16 +1,5 @@
 \relax 
 \providecommand\hyper@newdestlabel[2]{}
-\providecommand\HyperFirstAtBeginDocument{\AtBeginDocument}
-\HyperFirstAtBeginDocument{\ifx\hyper@anchor\@undefined
-\global\let\oldnewlabel\newlabel
-\gdef\newlabel#1#2{\newlabelxx{#1}#2}
-\gdef\newlabelxx#1#2#3#4#5#6{\oldnewlabel{#1}{{#2}{#3}}}
-\AtEndDocument{\ifx\hyper@anchor\@undefined
-\let\newlabel\oldnewlabel
-\fi}
-\fi}
-\global\let\hyper@last\relax 
-\gdef\HyperFirstAtBeginDocument#1{#1}
 \providecommand\HyField@AuxAddToFields[1]{}
 \providecommand\HyField@AuxAddToCoFields[2]{}
 \citation{joung2023}
@@ -22,9 +11,9 @@
 \citation{ramsauer2021,vaswani2017}
 \citation{widrich2020}
 \@writefile{toc}{\contentsline {paragraph}{Summary of intended contributions.}{3}{section*.2}\protected@file@percent }
-\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Overview of \textsc  {HopTF}. Schematic to create. Left: TF isoform amino-acid sequence is encoded by a protein language model and projected into query space. Middle: genomic loci are encoded by \textsc  {AlphaGenome}\ into a memory bank of keys and values. Cell state optionally modulates retrieval through accessibility or cluster-specific bias. Right: retrieved representation \(\mu _p\) conditions a flow model that transports control-cell latent states to TF-perturbed latent states. Add a separate panel showing retrieval weights over loci as interpretable activation patterns.\relax }}{3}{figure.caption.3}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Overview of \textsc  {HopTF}. Schematic to create. Left: TF isoform amino-acid sequence is encoded by a protein language model and projected into query space. Middle: genomic loci are encoded by \textsc  {AlphaGenome}\ into a memory bank of keys and values. Cell state optionally modulates retrieval through accessibility or cluster-specific bias. Right: retrieved representation \(\mu _p\) conditions a flow model that transports control-cell latent states to TF-perturbed latent states. Add a separate panel showing retrieval weights over loci as interpretable activation patterns.}}{3}{figure.caption.3}\protected@file@percent }
 \providecommand*\caption@xref[2]{\@setref\relax\@undefined{#1}}
-\newlabel{fig:overview}{{1}{3}{Overview of \hoptf . Schematic to create. Left: TF isoform amino-acid sequence is encoded by a protein language model and projected into query space. Middle: genomic loci are encoded by \ag \ into a memory bank of keys and values. Cell state optionally modulates retrieval through accessibility or cluster-specific bias. Right: retrieved representation \(\mu _p\) conditions a flow model that transports control-cell latent states to TF-perturbed latent states. Add a separate panel showing retrieval weights over loci as interpretable activation patterns.\relax }{figure.caption.3}{}}
+\newlabel{fig:overview}{{1}{3}{Overview of \hoptf . Schematic to create. Left: TF isoform amino-acid sequence is encoded by a protein language model and projected into query space. Middle: genomic loci are encoded by \ag \ into a memory bank of keys and values. Cell state optionally modulates retrieval through accessibility or cluster-specific bias. Right: retrieved representation \(\mu _p\) conditions a flow model that transports control-cell latent states to TF-perturbed latent states. Add a separate panel showing retrieval weights over loci as interpretable activation patterns}{figure.caption.3}{}}
 \@writefile{toc}{\contentsline {section}{\numberline {2}Background and Related Work}{3}{section.2}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {2.1}Associative memory, Hopfield retrieval, and attention}{3}{subsection.2.1}\protected@file@percent }
 \citation{roohani2023}
@@ -58,56 +47,59 @@
 \@writefile{toc}{\contentsline {paragraph}{Cell-state representation.}{10}{section*.6}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {5.2}Evaluation splits}{10}{subsection.5.2}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {5.3}Comparisons and controls}{10}{subsection.5.3}\protected@file@percent }
-\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Planned comparisons and their purpose.\relax }}{11}{table.caption.7}\protected@file@percent }
-\newlabel{tab:comparisons}{{1}{11}{Planned comparisons and their purpose.\relax }{table.caption.7}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Planned comparisons and their purpose.}}{11}{table.caption.7}\protected@file@percent }
+\newlabel{tab:comparisons}{{1}{11}{Planned comparisons and their purpose}{table.caption.7}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {5.4}Perturbed-cell state prediction metrics}{11}{subsection.5.4}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {5.5}Retrieval and biological validation metrics}{11}{subsection.5.5}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {5.6}Variant validation design}{12}{subsection.5.6}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {6}Results}{12}{section.6}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.1}Predicting the state of the perturbed cell}{12}{subsection.6.1}\protected@file@percent }
-\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces Experiment 1 prediction of the perturbed-cell state on grouped held-out-gene splits. Lower MSE is better.\relax }}{13}{table.caption.8}\protected@file@percent }
-\newlabel{tab:perturbed_state_results}{{2}{13}{Experiment 1 prediction of the perturbed-cell state on grouped held-out-gene splits. Lower MSE is better.\relax }{table.caption.8}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces MSE for predicting the perturbed-cell state. The \textsc  {ESM-C}-derived representation after projection into \textsc  {AlphaGenome}\ key space modestly improves over using only protein length, ORF length, and recovered cell count. \textsc  {ESM-DBP}\ does not improve this benchmark.\relax }}{13}{figure.caption.9}\protected@file@percent }
-\newlabel{fig:experiment1_controlled_overall_mse}{{2}{13}{MSE for predicting the perturbed-cell state. The \esm -derived representation after projection into \ag \ key space modestly improves over using only protein length, ORF length, and recovered cell count. \esmdbp \ does not improve this benchmark.\relax }{figure.caption.9}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.2}Ablation studies}{13}{subsection.6.2}\protected@file@percent }
-\@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces Overall encoder ablation. Percent change is relative to using only protein length, ORF length, and recovered cell count. Negative values indicate lower MSE.\relax }}{14}{table.caption.10}\protected@file@percent }
-\newlabel{tab:ablation_results}{{3}{14}{Overall encoder ablation. Percent change is relative to using only protein length, ORF length, and recovered cell count. Negative values indicate lower MSE.\relax }{table.caption.10}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces MSE change after adding sequence features to a model that already uses protein length, ORF length, and recovered cell count. \textsc  {ESM-C}\ projected into \textsc  {AlphaGenome}\ key space modestly improves in protein-length groups, recovered-cell-count groups, and joint length-plus-cell-count groups; \textsc  {ESM-DBP}\ is worse in the same comparisons.\relax }}{14}{figure.caption.11}\protected@file@percent }
-\newlabel{fig:experiment1_sequence_after_length_cell_count}{{3}{14}{MSE change after adding sequence features to a model that already uses protein length, ORF length, and recovered cell count. \esm \ projected into \ag \ key space modestly improves in protein-length groups, recovered-cell-count groups, and joint length-plus-cell-count groups; \esmdbp \ is worse in the same comparisons.\relax }{figure.caption.11}{}}
+\@writefile{toc}{\contentsline {paragraph}{Benign/control variant construction.}{12}{section*.8}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces Benign/control evidence tiers used for variant-control construction. The selected rows are the rows used in the 10-per-isoform capped table; the uncapped rows are all available exact-mapped natural-evidence rows before the per-isoform cap.}}{12}{table.caption.9}\protected@file@percent }
+\newlabel{tab:benign_control_tiers}{{2}{12}{Benign/control evidence tiers used for variant-control construction. The selected rows are the rows used in the 10-per-isoform capped table; the uncapped rows are all available exact-mapped natural-evidence rows before the per-isoform cap}{table.caption.9}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {6}Results}{13}{section.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.1}Predicting the state of the perturbed cell}{13}{subsection.6.1}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces Experiment 1 prediction of the perturbed-cell state on grouped held-out-gene splits. Lower MSE is better.}}{13}{table.caption.10}\protected@file@percent }
+\newlabel{tab:perturbed_state_results}{{3}{13}{Experiment 1 prediction of the perturbed-cell state on grouped held-out-gene splits. Lower MSE is better}{table.caption.10}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces MSE for predicting the perturbed-cell state. The \textsc  {ESM-C}-derived representation after projection into \textsc  {AlphaGenome}\ key space modestly improves over using only protein length, ORF length, and recovered cell count. \textsc  {ESM-DBP}\ does not improve this benchmark.}}{14}{figure.caption.11}\protected@file@percent }
+\newlabel{fig:experiment1_controlled_overall_mse}{{2}{14}{MSE for predicting the perturbed-cell state. The \esm -derived representation after projection into \ag \ key space modestly improves over using only protein length, ORF length, and recovered cell count. \esmdbp \ does not improve this benchmark}{figure.caption.11}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.2}Ablation studies}{14}{subsection.6.2}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {4}{\ignorespaces Overall encoder ablation. Percent change is relative to using only protein length, ORF length, and recovered cell count. Negative values indicate lower MSE.}}{14}{table.caption.12}\protected@file@percent }
+\newlabel{tab:ablation_results}{{4}{14}{Overall encoder ablation. Percent change is relative to using only protein length, ORF length, and recovered cell count. Negative values indicate lower MSE}{table.caption.12}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces MSE change after adding sequence features to a model that already uses protein length, ORF length, and recovered cell count. \textsc  {ESM-C}\ projected into \textsc  {AlphaGenome}\ key space modestly improves in protein-length groups, recovered-cell-count groups, and joint length-plus-cell-count groups; \textsc  {ESM-DBP}\ is worse in the same comparisons.}}{15}{figure.caption.13}\protected@file@percent }
+\newlabel{fig:experiment1_sequence_after_length_cell_count}{{3}{15}{MSE change after adding sequence features to a model that already uses protein length, ORF length, and recovered cell count. \esm \ projected into \ag \ key space modestly improves in protein-length groups, recovered-cell-count groups, and joint length-plus-cell-count groups; \esmdbp \ is worse in the same comparisons}{figure.caption.13}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {6.3}SCARF response representation robustness}{15}{subsection.6.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.4}Missense variants perturb predicted TF response}{15}{subsection.6.4}\protected@file@percent }
-\@writefile{lot}{\contentsline {table}{\numberline {4}{\ignorespaces Matched variant validation using the current PCA-derived response representation. Positive paired differences mean pathogenic variants changed predicted perturbed-cell state activity more than the matched control group under the previous absolute-change framing.\relax }}{15}{table.caption.12}\protected@file@percent }
-\newlabel{tab:matched_variant_validation}{{4}{15}{Matched variant validation using the current PCA-derived response representation. Positive paired differences mean pathogenic variants changed predicted perturbed-cell state activity more than the matched control group under the previous absolute-change framing.\relax }{table.caption.12}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.4}Missense variants perturb predicted TF response}{16}{subsection.6.4}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {5}{\ignorespaces Matched variant validation using the current PCA-derived response representation. Positive paired differences mean pathogenic variants changed predicted perturbed-cell state activity more than the matched control group under the previous absolute-change framing.}}{16}{table.caption.14}\protected@file@percent }
+\newlabel{tab:matched_variant_validation}{{5}{16}{Matched variant validation using the current PCA-derived response representation. Positive paired differences mean pathogenic variants changed predicted perturbed-cell state activity more than the matched control group under the previous absolute-change framing}{table.caption.14}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {6.5}Variant effects move the retrieval distribution}{16}{subsection.6.5}\protected@file@percent }
-\@writefile{lot}{\contentsline {table}{\numberline {5}{\ignorespaces Matched retrieval-change diagnostic. Positive paired differences mean pathogenic variants moved the retrieval distribution more than the matched control group.\relax }}{16}{table.caption.13}\protected@file@percent }
-\newlabel{tab:matched_retrieval_change}{{5}{16}{Matched retrieval-change diagnostic. Positive paired differences mean pathogenic variants moved the retrieval distribution more than the matched control group.\relax }{table.caption.13}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Variant-specific retrieval movement across AlphaGenome windows. Plot to create after the May 17 example-panel run. Each chromosome should be a vertical bar split into the AlphaGenome locus bins used by HopTF. Use the same color scale for WT, pathogenic mutant, and matched control panels. The caption must state that the plot shows locus-window retrieval weights, not binding-site measurements.\relax }}{16}{figure.caption.14}\protected@file@percent }
-\newlabel{fig:variant_retrieval_chromosome_heatmap}{{4}{16}{Variant-specific retrieval movement across AlphaGenome windows. Plot to create after the May 17 example-panel run. Each chromosome should be a vertical bar split into the AlphaGenome locus bins used by HopTF. Use the same color scale for WT, pathogenic mutant, and matched control panels. The caption must state that the plot shows locus-window retrieval weights, not binding-site measurements.\relax }{figure.caption.14}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {6}{\ignorespaces Matched retrieval-change diagnostic. Positive paired differences mean pathogenic variants moved the retrieval distribution more than the matched control group.}}{16}{table.caption.15}\protected@file@percent }
+\newlabel{tab:matched_retrieval_change}{{6}{16}{Matched retrieval-change diagnostic. Positive paired differences mean pathogenic variants moved the retrieval distribution more than the matched control group}{table.caption.15}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Variant-specific retrieval movement across AlphaGenome windows. Plot to create after the May 17 example-panel run. Each chromosome should be a vertical bar split into the AlphaGenome locus bins used by HopTF. Use the same color scale for WT, pathogenic mutant, and matched control panels. The caption must state that the plot shows locus-window retrieval weights, not binding-site measurements.}}{17}{figure.caption.16}\protected@file@percent }
+\newlabel{fig:variant_retrieval_chromosome_heatmap}{{4}{17}{Variant-specific retrieval movement across AlphaGenome windows. Plot to create after the May 17 example-panel run. Each chromosome should be a vertical bar split into the AlphaGenome locus bins used by HopTF. Use the same color scale for WT, pathogenic mutant, and matched control panels. The caption must state that the plot shows locus-window retrieval weights, not binding-site measurements}{figure.caption.16}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {6.6}Beta controls retrieval regime}{17}{subsection.6.6}\protected@file@percent }
-\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Effect of retrieval temperature \(\beta \). Plot to create. X-axis: \(\beta \). Y-axes in separate panels: perturbed-cell state metric, entropy/effective loci, top-\(k\) mass, motif enrichment. Expected qualitative regimes: low \(\beta \) diffuse averaging, intermediate \(\beta \) subset retrieval, high \(\beta \) collapse.\relax }}{17}{figure.caption.15}\protected@file@percent }
-\newlabel{fig:beta_sweep}{{5}{17}{Effect of retrieval temperature \(\beta \). Plot to create. X-axis: \(\beta \). Y-axes in separate panels: perturbed-cell state metric, entropy/effective loci, top-\(k\) mass, motif enrichment. Expected qualitative regimes: low \(\beta \) diffuse averaging, intermediate \(\beta \) subset retrieval, high \(\beta \) collapse.\relax }{figure.caption.15}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.7}Retrieval distributions identify candidate compatible regulatory loci}{17}{subsection.6.7}\protected@file@percent }
-\@writefile{lot}{\contentsline {table}{\numberline {6}{\ignorespaces Placeholder TF-specific retrieval case studies.\relax }}{17}{table.caption.16}\protected@file@percent }
-\newlabel{tab:case_studies}{{6}{17}{Placeholder TF-specific retrieval case studies.\relax }{table.caption.16}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces Interpretable activation patterns over loci. Plot to create. Genome browser-style track or Manhattan-like plot showing retrieval weights over loci for selected TFs and cell-state clusters. Add tracks for accessibility, motif hits, nearby genes, and observed expression changes if available.\relax }}{18}{figure.caption.17}\protected@file@percent }
-\newlabel{fig:retrieval_tracks}{{6}{18}{Interpretable activation patterns over loci. Plot to create. Genome browser-style track or Manhattan-like plot showing retrieval weights over loci for selected TFs and cell-state clusters. Add tracks for accessibility, motif hits, nearby genes, and observed expression changes if available.\relax }{figure.caption.17}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.8}Motif enrichment and external binding validation}{18}{subsection.6.8}\protected@file@percent }
-\@writefile{lot}{\contentsline {table}{\numberline {7}{\ignorespaces Current exact-symbol motif and binding recall is weak; redesigned family-level and accessibility-supported validation remains pending.\relax }}{19}{table.caption.18}\protected@file@percent }
-\newlabel{tab:motif_results}{{7}{19}{Current exact-symbol motif and binding recall is weak; redesigned family-level and accessibility-supported validation remains pending.\relax }{table.caption.18}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.9}Natural isoform diagnostic}{19}{subsection.6.9}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.10}Protein length, ORF length, and recovered-cell-count checks}{19}{subsection.6.10}\protected@file@percent }
-\@writefile{lot}{\contentsline {table}{\numberline {8}{\ignorespaces Checks using protein length, ORF length, and recovered cell count. Lower MSE is better. The matched rows evaluate whether sequence-derived features add signal within groups defined by protein length and recovered cell count.\relax }}{20}{table.caption.19}\protected@file@percent }
-\newlabel{tab:length_cell_checks}{{8}{20}{Checks using protein length, ORF length, and recovered cell count. Lower MSE is better. The matched rows evaluate whether sequence-derived features add signal within groups defined by protein length and recovered cell count.\relax }{table.caption.19}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {7}Discussion}{20}{section.7}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {7.1}What \textsc  {HopTF}\ adds beyond ``slapping on a transformer''}{20}{subsection.7.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {7.2}Associative memory as a modeling lens}{20}{subsection.7.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {7.3}Biological interpretation and hypothesis generation}{21}{subsection.7.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {7.4}Limitations}{21}{subsection.7.4}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {7.5}Future directions}{22}{subsection.7.5}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {8}Conclusion}{22}{section.8}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Effect of retrieval temperature \(\beta \). Plot to create. X-axis: \(\beta \). Y-axes in separate panels: perturbed-cell state metric, entropy/effective loci, top-\(k\) mass, motif enrichment. Expected qualitative regimes: low \(\beta \) diffuse averaging, intermediate \(\beta \) subset retrieval, high \(\beta \) collapse.}}{18}{figure.caption.17}\protected@file@percent }
+\newlabel{fig:beta_sweep}{{5}{18}{Effect of retrieval temperature \(\beta \). Plot to create. X-axis: \(\beta \). Y-axes in separate panels: perturbed-cell state metric, entropy/effective loci, top-\(k\) mass, motif enrichment. Expected qualitative regimes: low \(\beta \) diffuse averaging, intermediate \(\beta \) subset retrieval, high \(\beta \) collapse}{figure.caption.17}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.7}Retrieval distributions identify candidate compatible regulatory loci}{18}{subsection.6.7}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {7}{\ignorespaces Placeholder TF-specific retrieval case studies.}}{18}{table.caption.18}\protected@file@percent }
+\newlabel{tab:case_studies}{{7}{18}{Placeholder TF-specific retrieval case studies}{table.caption.18}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces Interpretable activation patterns over loci. Plot to create. Genome browser-style track or Manhattan-like plot showing retrieval weights over loci for selected TFs and cell-state clusters. Add tracks for accessibility, motif hits, nearby genes, and observed expression changes if available.}}{19}{figure.caption.19}\protected@file@percent }
+\newlabel{fig:retrieval_tracks}{{6}{19}{Interpretable activation patterns over loci. Plot to create. Genome browser-style track or Manhattan-like plot showing retrieval weights over loci for selected TFs and cell-state clusters. Add tracks for accessibility, motif hits, nearby genes, and observed expression changes if available}{figure.caption.19}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.8}Motif enrichment and external binding validation}{19}{subsection.6.8}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {8}{\ignorespaces Current exact-symbol motif and binding recall is weak; redesigned family-level and accessibility-supported validation remains pending.}}{20}{table.caption.20}\protected@file@percent }
+\newlabel{tab:motif_results}{{8}{20}{Current exact-symbol motif and binding recall is weak; redesigned family-level and accessibility-supported validation remains pending}{table.caption.20}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.9}Natural isoform diagnostic}{20}{subsection.6.9}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.10}Protein length, ORF length, and recovered-cell-count checks}{20}{subsection.6.10}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {9}{\ignorespaces Checks using protein length, ORF length, and recovered cell count. Lower MSE is better. The matched rows evaluate whether sequence-derived features add signal within groups defined by protein length and recovered cell count.}}{21}{table.caption.21}\protected@file@percent }
+\newlabel{tab:length_cell_checks}{{9}{21}{Checks using protein length, ORF length, and recovered cell count. Lower MSE is better. The matched rows evaluate whether sequence-derived features add signal within groups defined by protein length and recovered cell count}{table.caption.21}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {7}Discussion}{21}{section.7}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.1}What \textsc  {HopTF}\ adds beyond ``slapping on a transformer''}{21}{subsection.7.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.2}Associative memory as a modeling lens}{21}{subsection.7.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.3}Biological interpretation and hypothesis generation}{22}{subsection.7.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.4}Limitations}{22}{subsection.7.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.5}Future directions}{23}{subsection.7.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {8}Conclusion}{23}{section.8}\protected@file@percent }
 \bibcite{ahlmanneltze2025}{{1}{2025}{{Ahlmann-Eltze et~al.}}{{}}}
-\@writefile{toc}{\contentsline {section}{\numberline {A}Appendix: Suggested Figures}{23}{appendix.A}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {B}Appendix: Reporting Checklist}{23}{appendix.B}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {A}Appendix: Suggested Figures}{24}{appendix.A}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {B}Appendix: Reporting Checklist}{24}{appendix.B}\protected@file@percent }
 \bibcite{avsec2026}{{2}{2026}{{Avsec et~al.}}{{}}}
 \bibcite{basnet2026}{{3}{2026}{{Basnet et~al.}}{{}}}
 \bibcite{gonzalezblas2023}{{4}{2023}{{Bravo Gonz\'alez-Blas et~al.}}{{}}}
@@ -127,4 +119,4 @@
 \bibcite{tong2024sf2m}{{18}{2024b}{{Tong et~al.}}{{}}}
 \bibcite{vaswani2017}{{19}{2017}{{Vaswani et~al.}}{{}}}
 \bibcite{widrich2020}{{20}{2020}{{Widrich et~al.}}{{}}}
-\gdef \@abspage@last{25}
+\gdef \@abspage@last{26}
