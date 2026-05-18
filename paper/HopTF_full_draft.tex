@@ -360,7 +360,7 @@ We evaluate perturbation prediction in latent and gene-expression space:
 We evaluate the locus activation distribution independently of perturbed-cell state prediction:
 \begin{itemize}
     \item retrieval entropy \(H(\alpha)\), effective number of loci \(N_{\mathrm{eff}}\), and top-\(k\) mass;
-    \item beta sensitivity curves showing diffuse, subset, and concentrated retrieval regimes;
+    \item \(\beta\) sensitivity curves showing diffuse, subset, and concentrated retrieval regimes;
     \item motif enrichment among top-retrieved loci using matched GC/accessibility/length backgrounds;
     \item overlap with external ChIP-seq peaks for the same or related TFs when available;
     \item enrichment near genes whose expression changes after TF overexpression;
@@ -370,6 +370,7 @@ We evaluate the locus activation distribution independently of perturbed-cell st
 \placeholder{Specify motif enrichment tool, motif database, background construction, top-\(k\) thresholds, multiple-testing correction, and whether the support definition is same-TF, TF-family, same-TF ReMap, TF-family ReMap, or accessibility-supported motif evidence.}
 
 \subsection{Variant validation design}
+\label{sec:variant_validation_design}
 
 Variant experiments are used as sequence-sensitivity diagnostics. The primary comparison is between high-confidence pathogenic or likely pathogenic missense substitutions and matched random single-residue substitutions in the same TF isoform. Matching must control ESM-C distance from wild type, broad protein region, domain class where available, and mutant-residue class where possible. ESM-C distance is an embedding-space quantity, not mutation edit size.
 
@@ -411,7 +412,7 @@ The natural-evidence table contains 9,719 rows across 717 isoforms; 435 isoforms
 
 The ortholog-supported generator produced 22,551 candidate substitutions across 2,554 isoforms, with 2,039 isoforms reaching 10 ortholog-supported controls. In the regenerated capped table, natural evidence is selected first, then ortholog-supported tier 4 rows fill the next slots, and tier 5 legacy conservative fallback rows are used only for remaining slots needed to preserve exactly 10 variants for every isoform. The capped table contains 32,640 rows: 5,889 natural-evidence rows, 18,600 ortholog-supported tier 4 rows, and 8,151 tier 5 fallback rows. A total of 2,259 isoforms need no tier 5 fallback.
 
-Tier 4 rows are reported as \emph{ortholog-supported tolerated substitutions} or \emph{evolutionarily supported synthetic controls}. They are not clinical benign variants and are not treated as direct evidence of molecular neutrality. Tier 5 rows have no independent clinical, population, functional, or ortholog evidence; they are retained only for fixed-size software and embedding workflows and must be reported separately. The generator records formal HGVS protein notation, one-letter shorthand notation, sequence round-trip validation, and, for tier 4 rows, the supporting ortholog species, ortholog gene/protein identifiers, alignment identity, and alignment coverage. The regenerated local artifacts are stored under \url{data/processed/variant_controls/tf_isoform_benign_controls_10_per_isoform_ortholog_tier4_20260517/}.
+Tier 4 rows are reported as \emph{ortholog-supported tolerated substitutions} or \emph{evolutionarily supported synthetic controls}. They are not clinical benign variants and are not treated as direct evidence of molecular neutrality. Tier 5 rows are conservative fallback controls. They have no independent clinical, population, functional, or ortholog evidence, and they are included only when Tiers 1--4 do not provide enough rows to maintain the fixed design of 10 control substitutions per TF isoform. Tier 5 rows are therefore software-balancing controls rather than biological evidence; analyses that use them should report them separately and should not interpret them as benign or tolerated variants. The generator records formal HGVS protein notation, one-letter shorthand notation, sequence round-trip validation, and, for tier 4 rows, the supporting ortholog species, ortholog gene/protein identifiers, alignment identity, and alignment coverage. The regenerated local artifacts are stored under \url{data/processed/variant_controls/tf_isoform_benign_controls_10_per_isoform_ortholog_tier4_20260517/}.
 
 ESM-C distance from wild type is treated as an annotation and matching variable, not as a source of benign labels. Natural controls with large ESM-C shifts are retained only when their independent clinical, population, or functional evidence is strong enough, and they are reported as a stress-test subset rather than silently merged into the core control set. The regenerated capped artifacts are mirrored to \url{hf://datasets/pvd232/HopTF/processed/variant_controls/tf_isoform_benign_controls_10_per_isoform_ortholog_tier4_20260517}.
 
@@ -551,9 +552,9 @@ This is a negative result for the strongest version of the predictive claim. The
 
 \subsection{Missense variants perturb predicted TF response}
 
-We next used TF missense variants as a sequence-sensitivity diagnostic. The purpose of this analysis is not to build a clinical variant classifier. Instead, it asks whether changing a TF amino-acid sequence changes model-predicted TF-induced activity more than matched control substitutions. In this section, predicted perturbed-cell state activity means the magnitude of the model-predicted movement in \scarf\ latent space from the WT isoform response toward the mutant isoform response. A signed change asks whether the mutant response is weaker or stronger than WT; an absolute change asks whether the mutant response is different from WT in either direction.
+We next used TF missense variants as a sequence sensitivity diagnostic. This analysis does not ask whether \hoptf\ classifies clinical variants. Instead, it asks whether changing a TF amino acid sequence changes the predicted perturbation response more than matched control substitutions. For each variant, we compared the predicted response for the wild type isoform with the predicted response for the mutant isoform in \scarf\ latent space. We report both signed changes, which test whether a variant weakens the predicted response, and absolute changes, which test whether a variant changes the predicted response in either direction.
 
-The \scarf-space result supports absolute disruption, not signed weakening. Pathogenic variants did not consistently weaken predicted TF activity relative to WT, which is biologically plausible because damaging TF variants can either reduce, increase, or redirect a response. However, pathogenic variants produced larger absolute changes than matched controls.
+Pathogenic variants did not consistently reduce the predicted response relative to wild type. This is not surprising: damaging TF variants may weaken, strengthen, or redirect a transcriptional response depending on the affected domain and cellular context. The stronger result is therefore the absolute disruption test. Pathogenic variants produced larger absolute predicted response changes than matched random substitutions, with 189 matched sets, median paired difference 0.0111, and one-sided Wilcoxon \(p=0.0084\). Pathogenic variants also produced larger absolute predicted response changes than matched benign/control variants, with 158 matched sets, median paired difference 0.0346, and one-sided Wilcoxon \(p=5.46\times 10^{-6}\).
 
 \begin{table}[H]
 \centering
@@ -587,13 +588,13 @@ Pathogenic vs. evidence-tiered benign/control & Absolute disruption & 158 & 0.03
 \label{fig:signed_variant_effect_violin}
 \end{figure}
 
-Matched random substitutions are the primary comparison because the current benign/control panel is curated but not yet balanced enough to serve as a definitive molecular-neutral class. The evidence-tiered control result is supportive, but it should be interpreted by tier rather than pooled into a single ``benign'' label. The current claim is therefore narrow: in \scarf\ space, pathogenic missense variants move predicted perturbed-cell state activity farther from WT than matched controls under an absolute-disruption framing.
+Pathogenic and control distributions still overlap substantially: 0.5397 of pathogenic variants exceeded their matched random controls, and 0.5949 exceeded their matched benign/control variants. These results show that TF missense substitutions can move \hoptf's predicted response away from the wild type prediction, but they do not show that individual pathogenic variants are consistently distinguishable from matched controls. Matched random substitutions provide a useful and straightforward reference because they ask whether a pathogenic single residue substitution moves the predicted response more than another single residue change in the same isoform. The matched benign/control comparison points in the same direction, but it should be treated as provisional because this run used an earlier, less complete benign/control panel than the regenerated panel in Section~\ref{sec:variant_validation_design}. This motivates the regenerated benign/control design in Section~\ref{sec:variant_validation_design}, which builds up to 10 control substitutions for each TF isoform by prioritizing natural clinical, population, and functional evidence, then filling remaining slots with ortholog-supported tolerated substitutions and, only when necessary, conservative fallback controls.
 
 \interpretation{ESM-C distance from wild type is an embedding-space matching variable, not mutation edit size. A single amino-acid substitution can have a large ESM-C distance, and high ESM-C distance should be diagnosed rather than silently equated with a large mutation.}
 
 \subsection{Variant effects move the retrieval distribution}
 
-The matched retrieval-change run asks whether sequence variants that change predicted perturbed-cell state activity also move the \ag-key retrieval distribution. This is a diagnostic of the model's intermediate representation. It should not be interpreted as direct evidence that the variant changes TF binding at any specific locus.
+We next asked whether variants that alter predicted response also change the model's retrieval pattern over \ag\ windows. This is a diagnostic of \hoptf's intermediate representation: if sequence changes affect predicted cell state only after changing retrieval, then the model exposes an auditable link between TF protein sequence and the genomic context used for prediction. This analysis should therefore be interpreted as evidence that missense substitutions can propagate through \hoptf's retrieval layer, changing which genomic contexts are prioritized before prediction. It does not show that the TF actually binds, stops binding, or changes binding strength at any specific genomic location.
 
 \begin{table}[H]
 \centering
@@ -611,22 +612,28 @@ Pathogenic vs. matched random substitutions & 189 & \(1.08\times 10^{-4}\) & \(2
 }
 \end{table}
 
-This result supports using retrieval movement as a follow-up diagnostic after the predicted-response variant test. The random-control comparison is stronger than the ClinVar benign comparison, again motivating stricter benign/control curation. The May 17 artifact includes chromosome-binned example panels selected from the \scarf-space activity results. These panels use the \ag locus bins as the plotting unit, show wild type, pathogenic mutant, and matched benign/control sequences on a shared attention scale within each example, and add a signed pathogenic-minus-WT change panel.
+Pathogenic variants moved the retrieval distribution more than matched random substitutions, with 189 matched sets, median paired difference \(1.08\times 10^{-4}\), and one-sided Wilcoxon \(p=2.62\times 10^{-4}\). The comparison against matched ClinVar benign variants was weaker, with 158 matched sets, median paired difference \(4.34\times 10^{-5}\), and one-sided Wilcoxon \(p=0.2478\). This mirrors the response analysis: matched random substitutions provide a useful reference for same-isoform sequence perturbation, while benign or tolerated controls require the stronger control-panel design in Section~\ref{sec:variant_validation_design}.
+
+Figure~\ref{fig:variant_retrieval_chromosome_heatmap} shows selected examples as retrieval weights over \ag\ windows arranged by chromosome for wild type, pathogenic mutant, and matched benign/control sequences. The difference panel shows where retrieval weight increases or decreases after the pathogenic sequence change. These panels make the intermediate representation inspectable, but they do not identify measured binding sites or causal regulatory targets.
 
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.98\linewidth]{figures/variant_retrieval_chromosome_diagrams_matched_benign_scarf_1kb.png}
-\caption{Variant-specific retrieval movement across \ag\ windows. Each chromosome is split into the locus bins used by HopTF. The panels show wild type, pathogenic mutant, matched benign/control sequence, and pathogenic-minus-WT change for selected examples. These are locus-window retrieval weights, not measured binding sites.}
+\caption{Variant-specific retrieval movement across \ag\ windows. Each chromosome is split into the window bins used by \hoptf. The panels show wild type, pathogenic mutant, matched benign/control sequence, and pathogenic minus wild type change for selected examples. These are retrieval weights over locus windows, not measured binding sites.}
 \label{fig:variant_retrieval_chromosome_heatmap}
 \end{figure}
 
-\subsection{Beta controls retrieval regime}
+\subsection{\texorpdfstring{\(\beta\)}{beta} controls retrieval regime}
 
-The beta sweep directly tests whether the Hopfield retrieval module behaves like a controllable associative retrieval mechanism. The result is positive for the retrieval-mechanics claim. As \(\beta\) increases from 0.1 to 30, the median effective number of retrieved loci falls from nearly all \ag-key windows to a much smaller subset, and the median top-100 mass rises by more than two orders of magnitude. Adjacent beta values have median top-100 overlap of 1.0, so beta mostly changes concentration on a stable high-ranking set rather than completely changing which loci are selected.
+A sweep over retrieval temperature tests whether the \hoptf\ retrieval layer behaves like a controllable associative retrieval system. As \(\beta\) increases from 0.1 to 30, retrieval moves from diffuse averaging over many \ag-key windows toward more focused use of a smaller subset. The median effective number of retrieved loci falls from \(5.49\times 10^{4}\) to \(5.21\times 10^{3}\), while median top-100 mass rises from 0.0019 to 0.2166. At the same time, adjacent \(\beta\) values have median top-100 overlap of 1.0, indicating that \(\beta\) mostly sharpens a stable ranking rather than replacing the highest-ranked loci.
+
+This result supports the intended associative retrieval interpretation: \(\beta\) acts as an inverse retrieval temperature that controls how broadly or selectively \hoptf\ prioritizes regulatory loci. This makes \(\beta\) a hyperparameter with a biologically interpretable role for researchers studying transcription factors. A researcher studying a specific TF can inspect retrieval across lower and higher \(\beta\) values to compare broad regulatory-context averaging with more focused candidate-region hypotheses. Prior knowledge about TF specificity, chromatin context, or expected regulatory breadth can guide which regime is most useful for exploration.
+
+This interpretation remains qualitative. The \(\beta\) sweep does not show that \(\beta\) is a dose-calibrated proxy for TF concentration, that higher-\(\beta\) retrieval is more biologically correct, or that any \(\beta\) value improves perturbed-state prediction. Instead, \(\beta\) should be used as a sensitivity parameter for hypothesis generation: regions or patterns that are stable across \(\beta\) values are stronger candidates for follow-up, while \(\beta\)-specific regions may indicate hypotheses that depend on assuming more diffuse or more selective regulatory prioritization.
 
 \begin{table}[H]
 \centering
-\caption{Beta controls retrieval concentration. Effective loci and top-100 mass are medians across TF rows.}
+\caption{\(\beta\) controls retrieval concentration. Effective loci and top-100 mass are medians across TF rows.}
 \label{tab:beta_sensitivity}
 \begin{tabular}{ccc}
 \toprule
@@ -645,11 +652,11 @@ The beta sweep directly tests whether the Hopfield retrieval module behaves like
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.92\linewidth]{figures/beta_sweep_figure.png}
-\caption{Effect of retrieval inverse temperature \(\beta\). Increasing \(\beta\) concentrates retrieval mass onto fewer \ag\ windows while the identities of the highest-ranked windows remain stable across adjacent beta values. This supports the associative-retrieval interpretation but does not test beta-resolved \scarf-space prediction quality.}
+\caption{Effect of retrieval inverse temperature \(\beta\). Increasing \(\beta\) shifts retrieval from diffuse averaging over many \ag\ windows toward more focused use of a smaller subset, while adjacent \(\beta\) values preserve the same top-ranked windows. Independent motif and ReMap support remains weak across the sweep. The \(\beta\) result supports controllable associative retrieval behavior and a biologically interpretable sensitivity parameter, not dose-calibrated TF concentration or validated binding-site discovery.}
 \label{fig:beta_sweep}
 \end{figure}
 
-\interpretation{This result supports the associative-memory mechanism, not a dose-calibrated biological concentration claim. Safe phrasing: \(\beta\) is an inverse temperature controlling retrieval concentration. The current run does not test whether any beta value improves \scarf-space perturbed-cell prediction, because the \scarf\ transport checkpoint was not beta-parameterized.}
+\interpretation{This result supports controllable associative retrieval behavior, not a dose-calibrated biological concentration claim. Safe phrasing: \(\beta\) is an inverse retrieval temperature that lets researchers explore broader or more focused regulatory-locus prioritization. The current run does not test whether any \(\beta\) value improves \scarf-space perturbed-cell prediction, because the \scarf\ transport checkpoint was not \(\beta\)-parameterized.}
 
 \subsection{Retrieval distributions identify candidate compatible regulatory loci}
 
@@ -773,7 +780,7 @@ The model is not a continual-learning algorithm in its current form. However, th
 
 \hoptf\ is best interpreted as a hypothesis-generation model. We tolerate false positives more than false negatives if the goal is to nominate candidate compatible loci for follow-up analysis. This changes the evaluation standard. The model does not need every high-weight locus to be causal, but it should enrich for plausible regulatory contexts, avoid obvious confounding by dataset structure, and recover known motifs or target programs when strong prior evidence exists.
 
-A successful mature result would look like this: predictions of perturbed-cell state are competitive with simple comparisons; retrieval is not collapsed or random; top-retrieved windows are enriched for same-TF, TF-family, or accessibility-supported motif and binding evidence; retrieved windows are plausible under accessibility or cluster context; and case studies produce testable regulatory hypotheses. The current result is more mixed. The \scarf-space predictive benchmark is not improved by sequence features after protein length, ORF length, and recovered cell count are included. However, the variant experiments show sequence sensitivity under an absolute-disruption framing, and the beta sweep confirms that the retrieval module exposes a controllable concentration parameter. This combination is useful, but it is not enough to claim that the current model has learned a validated regulatory mechanism.
+A successful mature result would look like this: predictions of perturbed-cell state are competitive with simple comparisons; retrieval is not collapsed or random; top-retrieved windows are enriched for same-TF, TF-family, or accessibility-supported motif and binding evidence; retrieved windows are plausible under accessibility or cluster context; and case studies produce testable regulatory hypotheses. The current result is more mixed. The \scarf-space predictive benchmark is not improved by sequence features after protein length, ORF length, and recovered cell count are included. However, the variant experiments show sequence sensitivity under an absolute-disruption framing, and the \(\beta\) sweep confirms that the retrieval module exposes a controllable concentration parameter. This combination is useful, but it is not enough to claim that the current model has learned a validated regulatory mechanism.
 
 \subsection{Limitations}
 
@@ -814,7 +821,7 @@ The current experiments make this claim more precise. \scarf-space perturbed-sta
     \item \textbf{Variant sequence sensitivity.} Absolute disruption for pathogenic variants against matched random substitutions as the main panel; signed weakening and evidence-tiered benign/control variants as secondary panels.
     \item \textbf{Variant retrieval movement.} Chromosome-binned \ag-window attention for WT, pathogenic mutant, and matched benign/control sequences, plus pathogenic-minus-WT signed change.
     \item \textbf{MIL variant training.} Schematic and result panel showing that training on multiple tolerated/control sequence instances per TF improves or stabilizes response prediction while preserving larger pathogenic variant effects.
-    \item \textbf{Beta sweep.} Retrieval concentration, top-\(k\) mass, and retrieval stability across \(\beta\). Include perturbed-cell-state performance only if a beta-parameterized \scarf\ transport checkpoint is run.
+    \item \textbf{\(\beta\) sweep.} Retrieval concentration, top-\(k\) mass, and retrieval stability across \(\beta\). Include perturbed-cell-state performance only if a \(\beta\)-parameterized \scarf\ transport checkpoint is run.
     \item \textbf{Motif and binding support.} Precision@\(k\), recall@\(k\), rank-percentile distributions, and matched-background enrichment for exact-symbol, TF-family, ReMap, and accessibility-supported windows when the family/alias maps are reliable.
     \item \textbf{Appendix figure: ESM-C vs ESM-DBP.} \scarf-space encoder diagnostic showing that \esmdbp\ does not outperform \esm\ in this setup.
     \item \textbf{Appendix figure: Length, cell-count, and shuffled-sequence checks.} Performance of length/cell-count inputs and shuffled-sequence comparisons, labeled by response representation.
@@ -827,7 +834,7 @@ The current experiments make this claim more precise. \scarf-space perturbed-sta
     \item State whether values are tied to keys.
     \item State whether retrieval is unmasked, cluster-masked, or cell-specific.
     \item Report primary perturbed-cell-state metric and confidence intervals.
-    \item Report retrieval entropy, top-\(k\) mass, and beta sensitivity.
+    \item Report retrieval entropy, top-\(k\) mass, and \(\beta\) sensitivity.
     \item Include at least one comparison that uses protein length, ORF length, and recovered cell count.
     \item Report whether conclusions persist in \scarf\ response space or remain specific to the PCA-derived response representation.
     \item Define variant labels by evidence tier; do not pool clinical benign, population-tolerated, functional-neutral, and synthetic controls without showing tier-specific behavior.
