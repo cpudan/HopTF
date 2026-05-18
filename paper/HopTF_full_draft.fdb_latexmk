@@ -1,5 +1,13 @@
 # Fdb version 4
-["pdflatex"] 1779135100.92583 "HopTF_full_draft.tex" "HopTF_full_draft.pdf" "HopTF_full_draft" 1779135104.92453 0
+["bibtex HopTF_full_draft"] 1779138789.72457 "HopTF_full_draft.aux" "HopTF_full_draft.bbl" "HopTF_full_draft" 1779138789.79331 0
+  "./references.bib" 1779138688.01555 12996 9d96f06b266aa08534c0b150ef5965ed ""
+  "/usr/share/texlive/texmf-dist/bibtex/bst/natbib/plainnat.bst" 1233624470 26816 ffe5423d2019860bad9f54bc402fac15 ""
+  "HopTF_full_draft.aux" 1779138701.25537 30628 f923fd81f67cad7e125b9187c4796d31 "pdflatex"
+  (generated)
+  "HopTF_full_draft.bbl"
+  "HopTF_full_draft.blg"
+  (rewritten before read)
+["pdflatex"] 1779138697.25646 "HopTF_full_draft.tex" "HopTF_full_draft.pdf" "HopTF_full_draft" 1779138789.79338 0
   "/usr/share/texlive/texmf-dist/fonts/map/fontname/texfonts.map" 1577235249 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmex7.tfm" 1246382020 1004 54797486969f23fa377b128694d548df ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmex8.tfm" 1246382020 988 bdf658c3bfc2d96d3c8b02cfc1c94c20 ""
@@ -116,9 +124,10 @@
   "/usr/share/texlive/texmf-dist/web2c/texmf.cnf" 1764115200 40900 887e0dc8cac988a9e9c574af364cf837 ""
   "/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map" 1768928351.03535 4602615 ac1019cb4c4ba39710c2cf7f752b378d ""
   "/var/lib/texmf/web2c/pdftex/pdflatex.fmt" 1768928130 7753940 0bc6e702038bca57d14e8ea3c0000048 ""
-  "HopTF_full_draft.aux" 1779135104.85645 27428 bdd7b9b776f41e4aa1062f602f018dbf "pdflatex"
-  "HopTF_full_draft.out" 1779135104.85845 10040 843bb6f67d45dcc3db6c0b937bac6ef1 "pdflatex"
-  "HopTF_full_draft.tex" 1779135084.19417 94320 e078338dc86fcf1416833a8b180205e8 ""
+  "HopTF_full_draft.aux" 1779138701.25537 30628 f923fd81f67cad7e125b9187c4796d31 "pdflatex"
+  "HopTF_full_draft.bbl" 1779138789.77657 14529 11c5a491fd37aa41f1ccefc39e3ea8d1 "bibtex HopTF_full_draft"
+  "HopTF_full_draft.out" 1779138701.25737 10109 2c482f00329f0652d181f75f16a380ca "pdflatex"
+  "HopTF_full_draft.tex" 1779138581.54109 90134 f90f1460ddfaa769e19b8b5dc401a183 ""
   "figures/absolute_variant_effect_violin.png" 1779122598.72328 234449 b1504e72f225f64c5281e0905c52cafc ""
   "figures/benign_control_tier_counts.png" 1779122598.72428 183415 d820b2327308cf4b47ee9752dea1f867 ""
   "figures/beta_sweep_figure.png" 1779122598.72428 346785 9f0d039d5ca824ba53506184811def50 ""

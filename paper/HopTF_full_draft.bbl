@@ -1,0 +1,286 @@
+\begin{thebibliography}{28}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Ahlmann-Eltze et~al.(2025)Ahlmann-Eltze, Huber, and
+  Anders]{ahlmanneltze2025}
+Constantin Ahlmann-Eltze, Wolfgang Huber, and Simon Anders.
+\newblock Deep-learning-based gene perturbation effect prediction does not yet
+  outperform simple linear baselines.
+\newblock \emph{Nature Methods}, 22\penalty0 (8):\penalty0 1657--1661, 2025.
+\newblock \doi{10.1038/s41592-025-02772-6}.
+
+\bibitem[Avsec et~al.(2026)Avsec, Latysheva, Cheng, Novati, Taylor, Ward,
+  Bycroft, Nicolaisen, Arvaniti, Pan, Thomas, Dutordoir, Perino, De, Karollus,
+  Gayoso, Sargeant, Mottram, Wong, Drot{\'a}r, Kosiorek, Senior, Tanburn,
+  Applebaum, Basu, Hassabis, and Kohli]{avsec2026}
+{\v{Z}}iga Avsec, Natasha Latysheva, Jun Cheng, Guido Novati, Kyle~R. Taylor,
+  Tom Ward, Clare Bycroft, Lauren Nicolaisen, Eirini Arvaniti, Joshua Pan,
+  Raina Thomas, Vincent Dutordoir, Matteo Perino, Soham De, Alexander Karollus,
+  Adam Gayoso, Toby Sargeant, Anne Mottram, Lai~Hong Wong, Pavol Drot{\'a}r,
+  Adam Kosiorek, Andrew Senior, Richard Tanburn, Taylor Applebaum, Souradeep
+  Basu, Demis Hassabis, and Pushmeet Kohli.
+\newblock Advancing regulatory variant effect prediction with {AlphaGenome}.
+\newblock \emph{Nature}, 649\penalty0 (8099):\penalty0 1206--1218, 2026.
+\newblock \doi{10.1038/s41586-025-10014-0}.
+
+\bibitem[Basnet and Cheng(2026)]{basnet2026}
+Shreya Basnet and Jianlin Cheng.
+\newblock Integrating protein and {DNA} embeddings for improving genome-wide
+  transcription factor binding site prediction.
+\newblock \emph{NAR Genomics and Bioinformatics}, 8\penalty0 (2):\penalty0
+  lqag047, 2026.
+\newblock \doi{10.1093/nargab/lqag047}.
+
+\bibitem[Bravo Gonz{\'a}lez-Blas et~al.(2023)Bravo Gonz{\'a}lez-Blas,
+  De~Winter, Hulselmans, Hecker, Matetovici, Christiaens, Poovathingal,
+  Wouters, Aibar, and Aerts]{gonzalezblas2023}
+Carmen Bravo Gonz{\'a}lez-Blas, Seppe De~Winter, Gert Hulselmans, Nikolai
+  Hecker, Irina Matetovici, Valerie Christiaens, Suresh Poovathingal, Jasper
+  Wouters, Sara Aibar, and Stein Aerts.
+\newblock {SCENIC+}: single-cell multiomic inference of enhancers and gene
+  regulatory networks.
+\newblock \emph{Nature Methods}, 20\penalty0 (9):\penalty0 1355--1367, 2023.
+\newblock \doi{10.1038/s41592-023-01938-4}.
+
+\bibitem[Bunne et~al.(2023)Bunne, Stark, Gut, del Castillo, Levesque, Lehmann,
+  Pelkmans, Krause, and R{\"a}tsch]{bunne2023}
+Charlotte Bunne, Stefan~G. Stark, Gabriele Gut, Jacobo~Sarabia del Castillo,
+  Mitch Levesque, Kjong-Van Lehmann, Lucas Pelkmans, Andreas Krause, and Gunnar
+  R{\"a}tsch.
+\newblock Learning single-cell perturbation responses using neural optimal
+  transport.
+\newblock \emph{Nature Methods}, 20\penalty0 (11):\penalty0 1759--1768, 2023.
+\newblock \doi{10.1038/s41592-023-01969-x}.
+
+\bibitem[Cui et~al.(2024)Cui, Wang, Maan, Pang, Luo, Duan, and Wang]{cui2024}
+Haotian Cui, Chloe Wang, Hassaan Maan, Kuan Pang, Fengning Luo, Nan Duan, and
+  Bo~Wang.
+\newblock {scGPT}: toward building a foundation model for single-cell
+  multi-omics using generative {AI}.
+\newblock \emph{Nature Methods}, 21\penalty0 (8):\penalty0 1470--1480, 2024.
+\newblock \doi{10.1038/s41592-024-02201-0}.
+
+\bibitem[Dyer et~al.(2025)Dyer, Austine-Orimoloye, Azov, Barba, Barnes,
+  Barrera-Enriquez, Becker, Bennett, Beracochea, Berry,
+  et~al.]{dyer2025ensembl}
+Sarah~C. Dyer, Olanrewaju Austine-Orimoloye, Andrey~G. Azov, Matthieu Barba,
+  If~Barnes, Vianey~Paola Barrera-Enriquez, Arne Becker, Ruth Bennett, Martin
+  Beracochea, Andrew Berry, et~al.
+\newblock {Ensembl} 2025.
+\newblock \emph{Nucleic Acids Research}, 53\penalty0 (D1):\penalty0 D948--D957,
+  2025.
+\newblock \doi{10.1093/nar/gkae1071}.
+
+\bibitem[{ESM Team}(2024)]{evolutionaryscale2024}
+{ESM Team}.
+\newblock {ESM Cambrian}: revealing the mysteries of proteins with unsupervised
+  learning.
+\newblock EvolutionaryScale website, December 2024.
+\newblock URL \url{https://www.evolutionaryscale.ai/blog/esm-cambrian}.
+\newblock Accessed 18 May 2026.
+
+\bibitem[Esposito et~al.(2019)Esposito, Weile, Shendure, Starita, Papenfuss,
+  Roth, Fowler, and Rubin]{esposito2019mavedb}
+Daniel Esposito, Jochen Weile, Jay Shendure, Lea~M. Starita, Anthony~T.
+  Papenfuss, Frederick~P. Roth, Douglas~M. Fowler, and Alan~F. Rubin.
+\newblock {MaveDB}: an open-source platform to distribute and interpret data
+  from multiplexed assays of variant effect.
+\newblock \emph{Genome Biology}, 20\penalty0 (1):\penalty0 223, 2019.
+\newblock \doi{10.1186/s13059-019-1845-6}.
+
+\bibitem[Fu et~al.(2026)Fu, Dasoulas, Gabbita, Lin, Gao, Su, Ghosh, and
+  Zitnik]{fu2026}
+Boyang Fu, George Dasoulas, Sameer Gabbita, Xiang Lin, Shanghua Gao, Xiaorui
+  Su, Soumya Ghosh, and Marinka Zitnik.
+\newblock {STRAND}: Sequence-conditioned transport for single-cell
+  perturbations, 2026.
+\newblock URL \url{https://arxiv.org/abs/2602.10156}.
+
+\bibitem[Hammal et~al.(2022)Hammal, de~Langen, Bergon, Lopez, and
+  Ballester]{hammal2022remap}
+Fayrouz Hammal, Pierre de~Langen, Aur{\'e}lie Bergon, Fabrice Lopez, and Benoit
+  Ballester.
+\newblock {ReMap} 2022: a database of human, mouse, drosophila and arabidopsis
+  regulatory regions from an integrative analysis of {DNA}-binding sequencing
+  experiments.
+\newblock \emph{Nucleic Acids Research}, 50\penalty0 (D1):\penalty0 D316--D325,
+  2022.
+\newblock \doi{10.1093/nar/gkab996}.
+
+\bibitem[Hopfield(1982)]{hopfield1982}
+John~J. Hopfield.
+\newblock Neural networks and physical systems with emergent collective
+  computational abilities.
+\newblock \emph{Proceedings of the National Academy of Sciences}, 79\penalty0
+  (8):\penalty0 2554--2558, 1982.
+\newblock \doi{10.1073/pnas.79.8.2554}.
+
+\bibitem[Joung et~al.(2023)Joung, Ma, Tay, Geiger-Schuller, Kirchgatterer,
+  Verdine, Guo, Arias-Garcia, Allen, Singh, Kuksenko, Abudayyeh, Gootenberg,
+  Fu, Macrae, Buenrostro, Regev, and Zhang]{joung2023}
+Julia Joung, Sai Ma, Tristan Tay, Kathryn~R. Geiger-Schuller, Paul~C.
+  Kirchgatterer, Vanessa~K. Verdine, Baolin Guo, Mario~A. Arias-Garcia,
+  William~E. Allen, Ankita Singh, Olena Kuksenko, Omar~O. Abudayyeh,
+  Jonathan~S. Gootenberg, Zhanyan Fu, Rhiannon~K. Macrae, Jason~D. Buenrostro,
+  Aviv Regev, and Feng Zhang.
+\newblock A transcription factor atlas of directed differentiation.
+\newblock \emph{Cell}, 186\penalty0 (1):\penalty0 209--229.e26, 2023.
+\newblock \doi{10.1016/j.cell.2022.11.026}.
+
+\bibitem[Kamimoto et~al.(2023)Kamimoto, Stringa, Hoffmann, Jindal,
+  Solnica-Krezel, and Morris]{kamimoto2023}
+Kenji Kamimoto, Blerta Stringa, Christy~M. Hoffmann, Kunal Jindal, Lilianna
+  Solnica-Krezel, and Samantha~A. Morris.
+\newblock Dissecting cell identity via network inference and in silico gene
+  perturbation.
+\newblock \emph{Nature}, 614\penalty0 (7949):\penalty0 742--751, 2023.
+\newblock \doi{10.1038/s41586-022-05688-9}.
+
+\bibitem[Karczewski et~al.(2020)Karczewski, Francioli, Tiao, Cummings,
+  Alf{\"o}ldi, Wang, Collins, Laricchia, Ganna, Birnbaum,
+  et~al.]{karczewski2020gnomad}
+Konrad~J. Karczewski, Laurent~C. Francioli, Grace Tiao, Beryl~B. Cummings,
+  Jessica Alf{\"o}ldi, Qingbo Wang, Ryan~L. Collins, Kristen~M. Laricchia,
+  Andrea Ganna, Daniel~P. Birnbaum, et~al.
+\newblock The mutational constraint spectrum quantified from variation in
+  141,456 humans.
+\newblock \emph{Nature}, 581\penalty0 (7809):\penalty0 434--443, 2020.
+\newblock \doi{10.1038/s41586-020-2308-7}.
+
+\bibitem[Krotov and Hopfield(2016)]{krotov2016}
+Dmitry Krotov and John~J. Hopfield.
+\newblock Dense associative memory for pattern recognition.
+\newblock In \emph{Advances in Neural Information Processing Systems},
+  volume~29, pages 1172--1180, 2016.
+\newblock URL
+  \url{https://proceedings.neurips.cc/paper/2016/hash/eaae339c4d89fc102edd9dbdb6a28915-Abstract.html}.
+
+\bibitem[Landrum et~al.(2025)Landrum, Chitipiralla, Kaur, Brown, Chen, Hart,
+  Hoffman, Jang, Liu, Maddipatla, Maiti, Mitchell, Rezaie, Riley, Song, Yang,
+  Ziyabari, Russette, and Kattman]{landrum2025clinvar}
+Melissa~J. Landrum, Shanmuga Chitipiralla, Kuljeet Kaur, Garth Brown, Chao
+  Chen, Jennifer Hart, Douglas Hoffman, Wonhee Jang, Chunlei Liu, Zenith
+  Maddipatla, Rama Maiti, Joseph Mitchell, Tayebeh Rezaie, George Riley,
+  Guangfeng Song, Jinpeng Yang, Lora Ziyabari, Andrew Russette, and Brandi~L.
+  Kattman.
+\newblock {ClinVar}: updates to support classifications of both germline and
+  somatic variants.
+\newblock \emph{Nucleic Acids Research}, 53\penalty0 (D1):\penalty0
+  D1313--D1321, 2025.
+\newblock \doi{10.1093/nar/gkae1090}.
+
+\bibitem[Liu et~al.(2025)Liu, Zhao, Zhao, Wang, Cai, Wang, Wen, Lin, Yang, and
+  Chen]{scarf2025}
+Guole Liu, Yongbing Zhao, Yingying Zhao, Tianyu Wang, Quanyou Cai, Xiaotao
+  Wang, Ziyi Wen, Lihui Lin, Ge~Yang, and Jiekai Chen.
+\newblock {SCARF}: Single cell {ATAC}-seq and {RNA}-seq foundation model.
+\newblock \emph{bioRxiv}, 2025.
+\newblock \doi{10.1101/2025.04.07.647689}.
+
+\bibitem[Liu et~al.(2026)Liu, Wang, Basnet, and Cheng]{liutfbindformer2026}
+Ping Liu, Lyuwei Wang, Shreya Basnet, and Jianlin Cheng.
+\newblock {TFBindFormer}: A cross-attention transformer for transcription
+  factor--{DNA} binding prediction.
+\newblock \emph{bioRxiv}, 2026.
+\newblock \doi{10.64898/2026.04.09.717563}.
+
+\bibitem[Mistry et~al.(2021)Mistry, Chuguransky, Williams, Qureshi, Salazar,
+  Sonnhammer, Tosatto, Paladin, Raj, Richardson, Finn, and
+  Bateman]{mistry2021pfam}
+Jaina Mistry, Sara Chuguransky, Lowri Williams, Matloob Qureshi, Gustavo~A.
+  Salazar, Erik L.~L. Sonnhammer, Silvio C.~E. Tosatto, Lisanna Paladin, Shriya
+  Raj, Lorna~J. Richardson, Robert~D. Finn, and Alex Bateman.
+\newblock {Pfam}: The protein families database in 2021.
+\newblock \emph{Nucleic Acids Research}, 49\penalty0 (D1):\penalty0 D412--D419,
+  2021.
+\newblock \doi{10.1093/nar/gkaa913}.
+
+\bibitem[Ramsauer et~al.(2021)Ramsauer, Sch{\"a}fl, Lehner, Seidl, Widrich,
+  Gruber, Holzleitner, Adler, Kreil, Kopp, Klambauer, Brandstetter, and
+  Hochreiter]{ramsauer2021}
+Hubert Ramsauer, Bernhard Sch{\"a}fl, Johannes Lehner, Philipp Seidl, Michael
+  Widrich, Lukas Gruber, Markus Holzleitner, Thomas Adler, David~P. Kreil,
+  Michael~K. Kopp, G{\"u}nter Klambauer, Johannes Brandstetter, and Sepp
+  Hochreiter.
+\newblock Hopfield networks is all you need.
+\newblock In \emph{International Conference on Learning Representations}, 2021.
+\newblock URL \url{https://openreview.net/forum?id=tL89RnzIiCd}.
+
+\bibitem[Rauluseviciute et~al.(2024)Rauluseviciute, Riudavets-Puig,
+  Blanc-Mathieu, Castro-Mondragon, Ferenc, Kumar, Lemma, Lucas, Ch{\`e}neby,
+  Baranasic, Khan, Fornes, Gundersen, Johansen, Hovig, Lenhard, Sandelin,
+  Wasserman, Parcy, and Mathelier]{rauluseviciute2024jaspar}
+Ieva Rauluseviciute, Rafael Riudavets-Puig, Romain Blanc-Mathieu, Jaime~A.
+  Castro-Mondragon, Katalin Ferenc, Vipin Kumar, Roza~Berhanu Lemma,
+  J{\'e}r{\'e}my Lucas, Jeanne Ch{\`e}neby, Damir Baranasic, Aziz Khan, Oriol
+  Fornes, Sveinung Gundersen, Morten Johansen, Eivind Hovig, Boris Lenhard,
+  Albin Sandelin, Wyeth~W. Wasserman, Fran{\c{c}}ois Parcy, and Anthony
+  Mathelier.
+\newblock {JASPAR} 2024: 20th anniversary of the open-access database of
+  transcription factor binding profiles.
+\newblock \emph{Nucleic Acids Research}, 52\penalty0 (D1):\penalty0 D174--D182,
+  2024.
+\newblock \doi{10.1093/nar/gkad1059}.
+
+\bibitem[Roohani et~al.(2024)Roohani, Huang, and Leskovec]{roohani2023}
+Yusuf Roohani, Kexin Huang, and Jure Leskovec.
+\newblock Predicting transcriptional outcomes of novel multigene perturbations
+  with {GEARS}.
+\newblock \emph{Nature Biotechnology}, 42\penalty0 (6):\penalty0 927--935,
+  2024.
+\newblock \doi{10.1038/s41587-023-01905-6}.
+
+\bibitem[Tong et~al.(2024{\natexlab{a}})Tong, Fatras, Malkin, Huguet, Zhang,
+  Rector-Brooks, Wolf, and Bengio]{tong2024cfm}
+Alexander Tong, Kilian Fatras, Nikolay Malkin, Guillaume Huguet, Yanlei Zhang,
+  Jarrid Rector-Brooks, Guy Wolf, and Yoshua Bengio.
+\newblock Improving and generalizing flow-based generative models with
+  minibatch optimal transport.
+\newblock \emph{Transactions on Machine Learning Research}, 2024{\natexlab{a}}.
+\newblock URL \url{https://openreview.net/forum?id=CD9Snc73AW}.
+
+\bibitem[Tong et~al.(2024{\natexlab{b}})Tong, Malkin, Fatras, Atanackovic,
+  Zhang, Huguet, Wolf, and Bengio]{tong2024sf2m}
+Alexander Tong, Nikolay Malkin, Kilian Fatras, Lazar Atanackovic, Yanlei Zhang,
+  Guillaume Huguet, Guy Wolf, and Yoshua Bengio.
+\newblock Simulation-free schr{\"o}dinger bridges via score and flow matching.
+\newblock In \emph{Proceedings of the 27th International Conference on
+  Artificial Intelligence and Statistics}, volume 238 of \emph{Proceedings of
+  Machine Learning Research}, pages 1279--1287. PMLR, 2024{\natexlab{b}}.
+\newblock URL \url{https://proceedings.mlr.press/v238/y-tong24a.html}.
+
+\bibitem[Vaswani et~al.(2017)Vaswani, Shazeer, Parmar, Uszkoreit, Jones, Gomez,
+  Kaiser, and Polosukhin]{vaswani2017}
+Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones,
+  Aidan~N. Gomez, {\L}ukasz Kaiser, and Illia Polosukhin.
+\newblock Attention is all you need.
+\newblock In \emph{Advances in Neural Information Processing Systems},
+  volume~30, pages 5998--6008, 2017.
+\newblock URL
+  \url{https://proceedings.neurips.cc/paper/2017/hash/3f5ee243547dee91fbd053c1c4a845aa-Abstract.html}.
+
+\bibitem[Widrich et~al.(2020)Widrich, Sch{\"a}fl, Pavlovi{\'c}, Ramsauer,
+  Gruber, Holzleitner, Brandstetter, Sandve, Greiff, Hochreiter, and
+  Klambauer]{widrich2020}
+Michael Widrich, Bernhard Sch{\"a}fl, Milena Pavlovi{\'c}, Hubert Ramsauer,
+  Lukas Gruber, Markus Holzleitner, Johannes Brandstetter, Geir~Kjetil Sandve,
+  Victor Greiff, Sepp Hochreiter, and G{\"u}nter Klambauer.
+\newblock Modern hopfield networks and attention for immune repertoire
+  classification.
+\newblock In \emph{Advances in Neural Information Processing Systems},
+  volume~33, 2020.
+\newblock URL
+  \url{https://proceedings.neurips.cc/paper/2020/hash/da4902cb0bc38210839714ebdcf0efc3-Abstract.html}.
+
+\bibitem[Zeng et~al.(2024)Zeng, Dou, Pan, Xu, and Peng]{zeng2024esmdbp}
+Wenwu Zeng, Yutao Dou, Liangrui Pan, Liwen Xu, and Shaoliang Peng.
+\newblock Improving prediction performance of general protein language model by
+  domain-adaptive pretraining on {DNA}-binding protein.
+\newblock \emph{Nature Communications}, 15\penalty0 (1):\penalty0 7838, 2024.
+\newblock \doi{10.1038/s41467-024-52293-7}.
+
+\end{thebibliography}
