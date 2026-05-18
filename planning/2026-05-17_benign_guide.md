@@ -187,6 +187,12 @@ no structural, motif, or splice red flags
 
 These are not “clinically benign variants.” They are **evolutionarily tolerated substitutions**. Keep them in a separate category.
 
+### Tier 5: Legacy conservative synthetic fallback controls
+
+Use only to preserve a fixed-size design when Tiers 1--4 do not provide enough rows for an isoform. These rows are deterministic conservative amino-acid substitutions generated from the local isoform sequence. They avoid sequence edges, Cys/His/Gly/Pro/Trp positions when possible, C2H2-like zinc-finger motifs, basic patches, leucine-zipper-like heptads, and low-complexity windows when possible.
+
+Tier 5 rows do **not** have independent clinical, population, functional, or ortholog evidence. They are not clinical benign variants and should not be described as evolutionarily tolerated substitutions. Their only role is to keep an exactly balanced 10-variants-per-isoform file available for software and embedding workflows that require a fixed number of controls per isoform. Analyses should report Tier 5 separately and should treat any result that depends on Tier 5 rows as lower confidence.
+
 ---
 
 ## 5. Why TF benign controls are unusually tricky
@@ -247,6 +253,9 @@ Tier 3: functional-neutral MAVE/DMS/PBM/reporter variants
 
 Tier 4: ortholog-supported synthetic variants
   only as needed, and reported separately
+
+Tier 5: legacy conservative synthetic fallback
+  only when a fixed-size file is required and Tiers 1--4 do not fill all slots
 ```
 
 If the 200 controls must come from **one TF**, truly high-confidence benign missense controls may be sparse. In that case, do not force all 200 into one label class. Use separate labels:
@@ -256,6 +265,7 @@ clinical_benign
 population_tolerated
 functional_neutral
 ortholog_supported_synthetic
+legacy_conservative_fallback
 computationally_low_risk
 ```
 
@@ -848,6 +858,12 @@ Tier E:
   ortholog-supported synthetic
   no red flags
   kept separate from natural benign controls
+
+Tier F:
+  legacy conservative synthetic fallback
+  no independent benign/tolerated evidence
+  used only for fixed-size coverage when Tiers A--E are insufficient
+  always reported separately
 ```
 
 ### Step 7: Balance and stratify
@@ -1105,6 +1121,7 @@ clinical_benign_flag
 population_tolerated_flag
 functional_neutral_flag
 synthetic_ortholog_flag
+synthetic_conservative_flag
 
 clinvar_significance
 clinvar_review_status
@@ -1215,7 +1232,7 @@ A direct recipe:
    - model delta
 
 8. Rank:
-   ClinVar B/LB > common gnomAD > functional neutral > moderate-frequency gnomAD > ortholog-supported synthetic.
+   ClinVar B/LB > common gnomAD > functional neutral > moderate-frequency gnomAD > ortholog-supported synthetic > legacy conservative fallback.
 
 9. Select 200 with balance:
    - avoid overrepresentation of IDRs
@@ -1352,4 +1369,3 @@ The most important experimental-design principle is:
 [14]: https://cisbp.ccbr.utoronto.ca/ "CIS-BP Database: Catalog of Inferred Sequence Binding Preferences"
 [15]: https://alphamissense.hegelab.org/ "AlphaMissense"
 [16]: https://deepmind.google/blog/a-catalogue-of-genetic-mutations-to-help-pinpoint-the-cause-of-diseases/ "A catalogue of genetic mutations to help pinpoint the cause of diseases — Google DeepMind"
-
