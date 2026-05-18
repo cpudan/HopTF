@@ -62,11 +62,40 @@ CPUS=12 \
 scripts/run_ortholog_supported_controls_cluster.sh
 ```
 
-Current full-run job:
+Original full-run job:
 
 ```text
 16143826  hoptf_ortholog
 ```
+
+That first monolithic CPU job was split into a completed preparation phase and
+a compute phase so that the long Pfam scan could be watched separately.
+
+Completed preparation job:
+
+```text
+16143845  io partition  completed  01:06:08
+```
+
+Preparation output summary:
+
+```text
+mapped HopTF isoforms: 3,216
+candidate homology IDs: 335,270
+high-confidence ortholog homologies retained: 174,807
+ortholog pairs: 13,092
+candidate proteins for Pfam scan: 15,242
+```
+
+Compute jobs:
+
+```text
+16144580  cpu partition  canceled before start after GPU job began
+16144625  gpu partition  completed successfully in 00:59:41
+```
+
+The GPU job requested 12 CPUs, 96 GB memory, and one GPU. The GPU itself was
+not needed by HMMER; the GPU queue was used because the CPU queue was backed up.
 
 ## Expected outputs
 
@@ -91,6 +120,44 @@ Expected files:
 - `tf_isoform_ortholog_supported_controls_20260517.vocab.json`
 - `tf_isoform_ortholog_supported_controls_20260517.sequences.json`
 - `tf_isoform_ortholog_supported_controls_20260517.summary.json`
+
+## Completed output summary
+
+The final frozen run completed successfully on 2026-05-17.
+
+Summary from
+`/gpfs/commons/groups/knowles_lab/dmeyer/hoptf/ortholog_supported_controls_20260517/full_outputs/tf_isoform_ortholog_supported_controls_20260517.summary.json`:
+
+```text
+status: ok
+input HopTF non-control isoforms: 3,264
+isoforms mapped to human Ensembl proteins: 3,216
+isoforms with at least one ortholog-supported control: 2,554
+isoforms with requested 10 controls: 2,039
+total ortholog-supported controls: 22,551
+min variants per represented isoform: 1
+max variants per represented isoform: 10
+mean supporting species count: 2.675
+Pfam domain architecture required: true
+```
+
+The final files were copied locally to:
+
+```text
+data/processed/variant_controls/tf_isoform_ortholog_supported_controls_20260517
+```
+
+They were also uploaded to Hugging Face:
+
+```text
+hf://datasets/pvd232/HopTF/processed/variant_controls/tf_isoform_ortholog_supported_controls_20260517
+```
+
+Upload commit:
+
+```text
+https://huggingface.co/datasets/pvd232/HopTF/commit/ba5c40ee6f108aab28e11101f0b815e8f99e9136
+```
 
 ## Validation already run
 
