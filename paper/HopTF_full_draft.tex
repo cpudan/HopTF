@@ -400,6 +400,13 @@ Tier 5 legacy conservative fallback control & Deterministic conservative substit
 }
 \end{table}
 
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.88\linewidth]{figures/benign_control_tier_counts.png}
+\caption{Composition of the evidence-tiered benign/control variant panel. Natural clinical, population, and functional-assay evidence is prioritized first; ortholog-supported tolerated substitutions fill many remaining fixed-size slots; legacy conservative fallback controls are retained only where needed for exactly 10 variants per TF isoform.}
+\label{fig:benign_control_tier_counts}
+\end{figure}
+
 The natural-evidence table contains 9,719 rows across 717 isoforms; 435 isoforms have at least 10 natural rows. Because most TF isoforms currently have fewer than 10 natural benign/control rows, we stage a separate tier of ortholog-supported synthetic controls rather than filling the table directly with arbitrary conservative substitutions. For this tier, each proposed mutant residue must be observed at the corresponding aligned position in a non-human Ensembl Compara ortholog. The ortholog protein is aligned back to the local HopTF isoform sequence, the local wild-type residue must match the proposed one-based position, and the mutant sequence is regenerated from the local HopTF sequence. The candidate must pass conservative amino-acid chemistry filters and avoid sequence edges, C2H2-like zinc-finger motifs, basic patches, leucine-zipper-like heptads, low-complexity windows, and cysteine, histidine, glycine, proline, or tryptophan positions when possible. In the final frozen run, we additionally scan the human and ortholog proteins with Pfam and require the same Pfam domain-architecture tuple before accepting the ortholog-supported substitution.
 
 The ortholog-supported generator produced 22,551 candidate substitutions across 2,554 isoforms, with 2,039 isoforms reaching 10 ortholog-supported controls. In the regenerated capped table, natural evidence is selected first, then ortholog-supported tier 4 rows fill the next slots, and tier 5 legacy conservative fallback rows are used only for remaining slots needed to preserve exactly 10 variants for every isoform. The capped table contains 32,640 rows: 5,889 natural-evidence rows, 18,600 ortholog-supported tier 4 rows, and 8,151 tier 5 fallback rows. A total of 2,259 isoforms need no tier 5 fallback.
@@ -413,6 +420,15 @@ ESM-C distance from wild type is treated as an annotation and matching variable,
 The current model is trained on one canonical sequence representation per TF isoform, then variants are used only as post hoc sequence perturbations. A more appropriate training formulation is to treat tolerated or benign variants as multiple sequence instances of the same TF isoform. In this planned experiment, each TF isoform would have a bag of sequence instances containing the reference isoform sequence and high-confidence tolerated variants. These instances share the same observed TF Atlas perturbed-cell response, so the model should learn retrieval and response predictions that are stable across tolerated sequence variation. Pathogenic or damaging variants would then be evaluated as held-out sequence instances that may move retrieval or predicted perturbed-cell state activity away from the isoform-level tolerated bag.
 
 This experiment directly matches the weakly supervised multiple-instance structure of \hoptf. It asks whether the Hopfield query can be trained to ignore benign protein-sequence variation while remaining sensitive to variants that plausibly alter TF function. It is not run yet, and no result in this draft should be interpreted as evidence for benign-variant invariance until this experiment is designed and executed.
+
+Peter's planned MIL experiment should use the regenerated control table at \url{hf://datasets/pvd232/HopTF/processed/variant_controls/tf_isoform_benign_controls_10_per_isoform_ortholog_tier4_20260517}. Each variant sequence must be encoded with \esm\ so that the model sees the same type of protein-query input for the reference isoform, tolerated/control instances, and pathogenic held-out variants. The central comparison is:
+\begin{enumerate}
+    \item \textbf{Reference-only training:} train or evaluate using only the canonical TF isoform sequence.
+    \item \textbf{MIL tolerated-instance training:} train with the canonical sequence plus the Tier 1--4 tolerated/control instances as multiple instances of the same TF isoform response. Tier 5 fallback controls should be reported separately or excluded from the primary MIL claim because they lack independent tolerance evidence.
+    \item \textbf{Pathogenic held-out evaluation:} test whether pathogenic or likely pathogenic variants still produce larger absolute predicted response changes and retrieval changes than tolerated instances.
+\end{enumerate}
+
+\figplaceholder{mil_variant_training}{Planned MIL variant-training result}{Figure to insert after Peter's run. Suggested panels: left, schematic showing one TF isoform as a bag of reference and tolerated/control protein sequences sharing the same TF Atlas response label; middle, held-out perturbed-cell response prediction before versus after MIL training, where MIL should improve or stabilize prediction relative to reference-only training; right, absolute pathogenic variant effect compared with tolerated/control instances after MIL training, showing that the model remains sensitive to damaging variants rather than becoming invariant to all sequence changes. Caption must state which evidence tiers are used for training and whether Tier 5 fallback rows are excluded from the primary claim.}
 
 \section{Results}
 
@@ -515,6 +531,20 @@ Training-set mean response & \(3.65\times 10^{-7}\) & +346.0\% & 0.0000 \\
 }
 \end{table}
 
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.88\linewidth]{figures/scarf_sequence_feature_benchmark.png}
+\caption{\scarf-space controlled sequence-feature benchmark. Protein length, ORF length, and recovered cell count are difficult to beat; adding the Hopfield query or \esm\ features does not improve held-out-gene prediction in this response representation.}
+\label{fig:scarf_sequence_feature_benchmark}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.88\linewidth]{figures/scarf_sequence_improvement_heatmap.png}
+\caption{Matched-context \scarf-space sequence benchmark. The heatmap diagnoses whether sequence features help after stratifying by protein length, recovered cell count, or both; in this run, the sequence-feature additions do not improve over the measured covariates.}
+\label{fig:scarf_sequence_improvement_heatmap}
+\end{figure}
+
 This is a negative result for the strongest version of the predictive claim. The earlier PCA-space benchmark remains useful as a sensitivity analysis, but the primary \scarf-space benchmark does not support claiming that the current sequence or Hopfield-query features improve held-out TF response prediction after measured non-sequence variables are included. The paper should therefore shift emphasis from broad predictive performance to controlled sequence-sensitivity and retrieval diagnostics.
 
 \interpretation{Do not describe SCARF as automatically more biological than PCA. The relevant question is whether HopTF's sequence-conditioned conclusions persist after changing the cell-state representation while still controlling for protein length, ORF length, and recovered cell count. Here the predictive benchmark does not persist, so the PCA result must be framed as a sensitivity result rather than the main response-prediction claim.}
@@ -543,6 +573,20 @@ Pathogenic vs. evidence-tiered benign/control & Absolute disruption & 158 & 0.03
 }
 \end{table}
 
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.88\linewidth]{figures/absolute_variant_effect_violin.png}
+\caption{Absolute predicted perturbed-cell state activity change for pathogenic variants versus matched controls. This is the primary variant-sensitivity framing because damaging TF variants may weaken, strengthen, or redirect predicted response rather than only reducing response magnitude.}
+\label{fig:absolute_variant_effect_violin}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.88\linewidth]{figures/signed_variant_effect_violin.png}
+\caption{Signed predicted perturbed-cell state activity change for pathogenic variants versus matched controls. This diagnostic shows why the paper does not claim a consistent signed weakening effect: pathogenic variants are not expected to move responses in one direction only.}
+\label{fig:signed_variant_effect_violin}
+\end{figure}
+
 Matched random substitutions are the primary comparison because the current benign/control panel is curated but not yet balanced enough to serve as a definitive molecular-neutral class. The evidence-tiered control result is supportive, but it should be interpreted by tier rather than pooled into a single ``benign'' label. The current claim is therefore narrow: in \scarf\ space, pathogenic missense variants move predicted perturbed-cell state activity farther from WT than matched controls under an absolute-disruption framing.
 
 \interpretation{ESM-C distance from wild type is an embedding-space matching variable, not mutation edit size. A single amino-acid substitution can have a large ESM-C distance, and high ESM-C distance should be diagnosed rather than silently equated with a large mutation.}
@@ -569,7 +613,12 @@ Pathogenic vs. matched random substitutions & 189 & \(1.08\times 10^{-4}\) & \(2
 
 This result supports using retrieval movement as a follow-up diagnostic after the predicted-response variant test. The random-control comparison is stronger than the ClinVar benign comparison, again motivating stricter benign/control curation. The May 17 artifact includes chromosome-binned example panels selected from the \scarf-space activity results. These panels use the \ag locus bins as the plotting unit, show wild type, pathogenic mutant, and matched benign/control sequences on a shared attention scale within each example, and add a signed pathogenic-minus-WT change panel.
 
-\figplaceholder{variant_retrieval_chromosome_heatmap}{Variant-specific retrieval movement across AlphaGenome windows}{Replace with \texttt{variant\_retrieval\_chromosome\_diagrams\_matched\_benign\_scarf\_1kb.png}. Each chromosome is a vertical bar split into the \ag locus bins used by HopTF. Use a shared color scale for WT, pathogenic mutant, and matched control panels within each example, plus a separate signed color scale for pathogenic-minus-WT change. The caption must state that the plot shows locus-window retrieval weights, not binding-site measurements.}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.98\linewidth]{figures/variant_retrieval_chromosome_diagrams_matched_benign_scarf_1kb.png}
+\caption{Variant-specific retrieval movement across \ag\ windows. Each chromosome is split into the locus bins used by HopTF. The panels show wild type, pathogenic mutant, matched benign/control sequence, and pathogenic-minus-WT change for selected examples. These are locus-window retrieval weights, not measured binding sites.}
+\label{fig:variant_retrieval_chromosome_heatmap}
+\end{figure}
 
 \subsection{Beta controls retrieval regime}
 
@@ -593,7 +642,12 @@ The beta sweep directly tests whether the Hopfield retrieval module behaves like
 \end{tabular}
 \end{table}
 
-\figplaceholder{beta_sweep}{Effect of retrieval temperature \(\beta\)}{Insert the May 17 beta sweep figure. X-axis: \(\beta\). Y-axes in separate panels: effective loci, top-\(k\) mass, top-locus stability, and motif/binding support if shown. Do not include a perturbed-cell-state performance panel unless a beta-parameterized \scarf\ transport checkpoint is run.}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.92\linewidth]{figures/beta_sweep_figure.png}
+\caption{Effect of retrieval inverse temperature \(\beta\). Increasing \(\beta\) concentrates retrieval mass onto fewer \ag\ windows while the identities of the highest-ranked windows remain stable across adjacent beta values. This supports the associative-retrieval interpretation but does not test beta-resolved \scarf-space prediction quality.}
+\label{fig:beta_sweep}
+\end{figure}
 
 \interpretation{This result supports the associative-memory mechanism, not a dose-calibrated biological concentration claim. Safe phrasing: \(\beta\) is an inverse temperature controlling retrieval concentration. The current run does not test whether any beta value improves \scarf-space perturbed-cell prediction, because the \scarf\ transport checkpoint was not beta-parameterized.}
 
@@ -649,7 +703,19 @@ Exact JASPAR motif or exact TF ReMap peak & 1000 & 1616 & 0.0147 & 0.0182 \\
 }
 \end{table}
 
-\placeholder{Replace or extend this table only if the next validation adds a reliable motif-family and alias map. The needed additions are precision@k, recall@k, rank-percentile distributions, and matched-background enrichment for same-TF motifs, TF-family motifs, same-TF ReMap peaks, TF-family ReMap peaks, and accessibility-supported motifs.}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.86\linewidth]{figures/motif_binding_recall_by_topk.png}
+\caption{Recall of exact-symbol motif and ReMap support among top-ranked retrieved windows. Recall remains near or below random-rank expectation at the current \ag-window scale, so this result should be interpreted as a limitation rather than positive binding validation.}
+\label{fig:motif_binding_recall_by_topk}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.86\linewidth]{figures/motif_binding_precision_by_topk.png}
+\caption{Precision-style motif and ReMap support among top-ranked retrieved windows. This diagnostic asks what fraction of retrieved windows have exact same-symbol support; it remains modest and motivates family-level, alias-aware, and accessibility-supported validation.}
+\label{fig:motif_binding_precision_by_topk}
+\end{figure}
 
 \interpretation{Do not force a mechanistic interpretation from the current exact-symbol recall results. Possible explanations include resolution mismatch between motifs and \ag-key windows, sparse or alias-sensitive TF motif mappings, missing cell-state context, non-DNA-binding cofactors, inadequate memory embeddings, or perturbed-cell-state supervision dominated by dataset structure.}
 
@@ -728,7 +794,7 @@ Several limitations should be explicit.
 
 Natural extensions include adapter-based task adaptation of \ag-derived memory slots, hierarchical retrieval from chromosomes to loci, explicit enhancer-gene linking in value vectors, auxiliary motif or ChIP supervision, dose-conditioned retrieval temperature calibration, and continual updates to the memory bank as new cell types and perturbation datasets become available. A stronger biological model would also distinguish direct TF binding, cofactor-mediated regulation, chromatin remodeling, and downstream secondary response programs.
 
-The most important planned training extension is the multiple-instance variant experiment described above. Instead of treating benign or tolerated variants only as post hoc controls, the model would train on multiple tolerated sequence instances per TF isoform that share the same observed TF Atlas response. This would explicitly teach the query and retrieval system to be stable to tolerated sequence variation. Pathogenic variants could then be evaluated as held-out instances that may violate that learned invariance. This is a better match to the biological question than asking an untrained reference-sequence model to interpret all variant classes after the fact.
+The most important planned training extension is the multiple-instance variant experiment described above. Instead of treating benign or tolerated variants only as post hoc controls, the model would train on multiple tolerated sequence instances per TF isoform that share the same observed TF Atlas response. This should improve the response model by using more sequence instances per TF while explicitly teaching the query and retrieval system to be stable to tolerated sequence variation. The key success criterion is not only lower held-out response error: pathogenic variants should still produce larger absolute predicted response or retrieval changes than tolerated instances after MIL training. That combination would support the intended distinction between tolerance-aware invariance and loss of sequence sensitivity.
 
 \section{Conclusion}
 
@@ -743,11 +809,13 @@ The current experiments make this claim more precise. \scarf-space perturbed-sta
 
 \begin{enumerate}
     \item \textbf{Figure 1: Model overview.} TF sequence query, \ag\ locus memory, cell-state bias/mask, retrieval weights, \(\mu_p\), conditional flow field.
-    \item \textbf{Figure 2: Controlled perturbed-cell state prediction.} Primary \scarf-space benchmark after controlling protein length, ORF length, and recovered cell count, with PCA-derived results clearly labeled as sensitivity analysis.
-    \item \textbf{Figure 3: Variant sequence sensitivity.} Absolute disruption for pathogenic variants against matched random substitutions as the main panel; signed weakening and evidence-tiered benign/control variants as secondary panels.
-    \item \textbf{Figure 4: Variant retrieval movement.} Chromosome-binned \ag-window attention for WT, pathogenic mutant, and matched benign/control sequences, plus pathogenic-minus-WT signed change.
-    \item \textbf{Figure 5: Beta sweep.} Retrieval concentration, top-\(k\) mass, and retrieval stability across \(\beta\). Include perturbed-cell-state performance only if a beta-parameterized \scarf\ transport checkpoint is run.
-    \item \textbf{Figure 6: Motif and binding support.} Precision@\(k\), recall@\(k\), rank-percentile distributions, and matched-background enrichment for exact-symbol, TF-family, ReMap, and accessibility-supported windows when the family/alias maps are reliable.
+    \item \textbf{Control panel construction.} Evidence-tier counts for the benign/control variant panel, with natural evidence, ortholog-supported tolerated substitutions, and legacy fallback controls separated.
+    \item \textbf{Controlled perturbed-cell state prediction.} Primary \scarf-space benchmark after controlling protein length, ORF length, and recovered cell count, with PCA-derived results clearly labeled as sensitivity analysis.
+    \item \textbf{Variant sequence sensitivity.} Absolute disruption for pathogenic variants against matched random substitutions as the main panel; signed weakening and evidence-tiered benign/control variants as secondary panels.
+    \item \textbf{Variant retrieval movement.} Chromosome-binned \ag-window attention for WT, pathogenic mutant, and matched benign/control sequences, plus pathogenic-minus-WT signed change.
+    \item \textbf{MIL variant training.} Schematic and result panel showing that training on multiple tolerated/control sequence instances per TF improves or stabilizes response prediction while preserving larger pathogenic variant effects.
+    \item \textbf{Beta sweep.} Retrieval concentration, top-\(k\) mass, and retrieval stability across \(\beta\). Include perturbed-cell-state performance only if a beta-parameterized \scarf\ transport checkpoint is run.
+    \item \textbf{Motif and binding support.} Precision@\(k\), recall@\(k\), rank-percentile distributions, and matched-background enrichment for exact-symbol, TF-family, ReMap, and accessibility-supported windows when the family/alias maps are reliable.
     \item \textbf{Appendix figure: ESM-C vs ESM-DBP.} \scarf-space encoder diagnostic showing that \esmdbp\ does not outperform \esm\ in this setup.
     \item \textbf{Appendix figure: Length, cell-count, and shuffled-sequence checks.} Performance of length/cell-count inputs and shuffled-sequence comparisons, labeled by response representation.
 \end{enumerate}
