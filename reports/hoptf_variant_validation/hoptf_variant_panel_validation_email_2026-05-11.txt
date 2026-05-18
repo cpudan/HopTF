@@ -1,0 +1,5 @@
+Attached is the HopTF 48-variant validation PDF.
+
+Short version: the clean ClinVar panel has 24 benign and 24 deleterious missense variants, all coordinate-checked against local responder isoforms. The strict evaluator predicted 48 / 48 variants. Benign variants are mostly stable (23 / 24 within +/-5 percent response change), while deleterious variants shift more negative on average but separate only modestly from benign variants. AUROC using -percent_delta is 0.578.
+
+I would treat this as exploratory evidence for weak directional sequence sensitivity, not decisive validation of the current PCA-centroid endpoint model.
