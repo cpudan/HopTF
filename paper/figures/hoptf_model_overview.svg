@@ -1,0 +1,1082 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="1600"
+   height="820"
+   viewBox="0 0 1600 820"
+   role="img"
+   aria-labelledby="title desc"
+   version="1.1"
+   id="svg84"
+   sodipodi:docname="hoptf_model_overview.svg"
+   inkscape:version="1.4.3 (0d15f75042, 2025-12-25)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview84"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="8.5447723"
+     inkscape:cx="607.03782"
+     inkscape:cy="356.53378"
+     inkscape:window-width="3840"
+     inkscape:window-height="2100"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg84" />
+  <title
+     id="title">HopTF model overview</title>
+  <desc
+     id="desc">Conceptual overview of HopTF showing protein sequence and genome windows feeding associative retrieval, which produces a regulatory-context vector that conditions training and inference of a cell-state transport model.</desc>
+  <defs
+     id="defs8">
+    <marker
+       id="arrowBlue"
+       viewBox="0 0 10 8"
+       markerWidth="10"
+       markerHeight="8"
+       refX="10"
+       refY="4"
+       orient="auto"
+       markerUnits="userSpaceOnUse">
+      <path
+         d="M 0 0 L 10 4 L 0 8 z"
+         fill="#2563eb"
+         id="path1" />
+    </marker>
+    <marker
+       id="arrowGreen"
+       viewBox="0 0 10 8"
+       markerWidth="10"
+       markerHeight="8"
+       refX="10"
+       refY="4"
+       orient="auto"
+       markerUnits="userSpaceOnUse">
+      <path
+         d="M 0 0 L 10 4 L 0 8 z"
+         fill="#15803d"
+         id="path2" />
+    </marker>
+    <marker
+       id="arrowPurple"
+       viewBox="0 0 10 8"
+       markerWidth="10"
+       markerHeight="8"
+       refX="10"
+       refY="4"
+       orient="auto"
+       markerUnits="userSpaceOnUse">
+      <path
+         d="M 0 0 L 10 4 L 0 8 z"
+         fill="#7c3aed"
+         id="path3" />
+    </marker>
+    <marker
+       id="arrowGray"
+       viewBox="0 0 9 8"
+       markerWidth="9"
+       markerHeight="8"
+       refX="9"
+       refY="4"
+       orient="auto"
+       markerUnits="userSpaceOnUse">
+      <path
+         d="M 0 0 L 9 4 L 0 8 z"
+         fill="#4b5563"
+         id="path4" />
+    </marker>
+    <marker
+       id="arrowGrayMini"
+       viewBox="0 0 6 5"
+       markerWidth="6"
+       markerHeight="5"
+       refX="6"
+       refY="2.5"
+       orient="auto"
+       markerUnits="userSpaceOnUse">
+      <path
+         d="M 0 0 L 6 2.5 L 0 5 z"
+         fill="#6b7280"
+         id="path5" />
+    </marker>
+    <linearGradient
+       id="weightGradient"
+       x1="0%"
+       y1="0%"
+       x2="100%"
+       y2="0%">
+      <stop
+         offset="0%"
+         stop-color="#ffffff"
+         id="stop5" />
+      <stop
+         offset="45%"
+         stop-color="#fecaca"
+         id="stop6" />
+      <stop
+         offset="75%"
+         stop-color="#f87171"
+         id="stop7" />
+      <stop
+         offset="100%"
+         stop-color="#dc2626"
+         id="stop8" />
+    </linearGradient>
+    <style
+       id="style8">
+      .bg { fill: #ffffff; }
+      .panel { fill: #ffffff; stroke: #d1d5db; stroke-width: 2.4; }
+      .blue-panel { fill: #eff6ff; stroke: #60a5fa; stroke-width: 2.4; }
+      .green-panel { fill: #f0fdf4; stroke: #4ade80; stroke-width: 2.4; }
+      .purple-panel { fill: #f5f3ff; stroke: #a78bfa; stroke-width: 2.4; }
+      .orange-panel { fill: #fff7ed; stroke: #fb923c; stroke-width: 2.4; }
+      .soft { fill: #f9fafb; stroke: #d1d5db; stroke-width: 2; }
+      .title { font-family: Arial, Helvetica, sans-serif; font-size: 34px; font-weight: 700; fill: #111827; }
+      .subtitle { font-family: Arial, Helvetica, sans-serif; font-size: 18px; fill: #374151; }
+      .panel-title { font-family: Arial, Helvetica, sans-serif; font-size: 26px; font-weight: 700; fill: #111827; }
+      .label { font-family: Arial, Helvetica, sans-serif; font-size: 21px; font-weight: 700; fill: #111827; }
+      .text { font-family: Arial, Helvetica, sans-serif; font-size: 17px; fill: #374151; }
+      .small { font-family: Arial, Helvetica, sans-serif; font-size: 14px; fill: #4b5563; }
+      .tiny { font-family: Arial, Helvetica, sans-serif; font-size: 12px; fill: #4b5563; }
+      .math { font-family: &quot;Times New Roman&quot;, Times, serif; font-size: 27px; fill: #111827; font-style: italic; }
+      .math-small { font-family: &quot;Times New Roman&quot;, Times, serif; font-size: 22px; fill: #111827; font-style: italic; }
+      .blue-line { stroke: #2563eb; fill: none; stroke-width: 3.7; stroke-linecap: round; stroke-linejoin: round; }
+      .green-line { stroke: #15803d; fill: none; stroke-width: 3.7; stroke-linecap: round; stroke-linejoin: round; }
+      .purple-line { stroke: #7c3aed; fill: none; stroke-width: 3.7; stroke-linecap: round; stroke-linejoin: round; }
+      .gray-line { stroke: #4b5563; fill: none; stroke-width: 3.2; stroke-linecap: round; stroke-linejoin: round; }
+      .thin-gray { stroke: #9ca3af; fill: none; stroke-width: 1.6; stroke-linecap: round; }
+      .protein-ribbon { fill: none; stroke: #2563eb; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+      .protein-shadow { fill: none; stroke: #bfdbfe; stroke-width: 6.5; stroke-linecap: round; stroke-linejoin: round; opacity: 0.7; }
+      .protein-sheet { fill: #60a5fa; stroke: #1e40af; stroke-width: 1.8; stroke-linejoin: round; }
+      .protein-sheet-light { fill: #93c5fd; stroke: #2563eb; stroke-width: 1.8; stroke-linejoin: round; }
+      .protein-helix { fill: none; stroke: #1d4ed8; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+      .dna-outline { fill: none; stroke: #111827; stroke-width: 4.6; stroke-linecap: round; stroke-linejoin: round; }
+      .dna-backbone { fill: none; stroke-width: 2.9; stroke-linecap: round; stroke-linejoin: round; }
+      .dna-rung { stroke: #111827; stroke-width: 1.9; stroke-linecap: round; }
+    </style>
+  </defs>
+  <rect
+     class="bg"
+     x="0"
+     y="0"
+     width="1600"
+     height="820"
+     id="rect8" />
+  <text
+     class="title"
+     x="64"
+     y="58"
+     id="text8">HopTF conceptual overview</text>
+  <text
+     class="subtitle"
+     x="64"
+     y="90"
+     id="text9">A TF isoform sequence retrieves a regulatory context from genome-wide locus representations; the retrieved context conditions perturbation-response transport.</text>
+  <!-- Inputs -->
+  <rect
+     class="blue-panel"
+     x="70"
+     y="135"
+     width="360"
+     height="225"
+     rx="18"
+     id="rect9" />
+  <text
+     class="label"
+     x="96"
+     y="178"
+     id="text10">TF isoform sequence</text>
+  <text
+     class="text"
+     x="96"
+     y="207"
+     id="text11">amino-acid input</text>
+  <g
+     transform="translate(98,243)"
+     id="g18">
+    <circle
+       cx="0"
+       cy="0"
+       r="12"
+       fill="#60a5fa"
+       stroke="#1d4ed8"
+       stroke-width="2"
+       id="circle11" />
+    <circle
+       cx="31"
+       cy="0"
+       r="12"
+       fill="#34d399"
+       stroke="#047857"
+       stroke-width="2"
+       id="circle12" />
+    <circle
+       cx="62"
+       cy="0"
+       r="12"
+       fill="#f59e0b"
+       stroke="#b45309"
+       stroke-width="2"
+       id="circle13" />
+    <circle
+       cx="93"
+       cy="0"
+       r="12"
+       fill="#ef4444"
+       stroke="#b91c1c"
+       stroke-width="2"
+       id="circle14" />
+    <circle
+       cx="124"
+       cy="0"
+       r="12"
+       fill="#a78bfa"
+       stroke="#6d28d9"
+       stroke-width="2"
+       id="circle15" />
+    <circle
+       cx="155"
+       cy="0"
+       r="12"
+       fill="#22c55e"
+       stroke="#15803d"
+       stroke-width="2"
+       id="circle16" />
+    <circle
+       cx="186"
+       cy="0"
+       r="12"
+       fill="#60a5fa"
+       stroke="#1d4ed8"
+       stroke-width="2"
+       id="circle17" />
+    <circle
+       cx="217"
+       cy="0"
+       r="12"
+       fill="#f59e0b"
+       stroke="#b45309"
+       stroke-width="2"
+       id="circle18" />
+    <path
+       d="M 12 0 L 19 0 M 43 0 L 50 0 M 74 0 L 81 0 M 105 0 L 112 0 M 136 0 L 143 0 M 167 0 L 174 0 M 198 0 L 205 0"
+       stroke="#6b7280"
+       stroke-width="3"
+       id="path18" />
+  </g>
+  <rect
+     class="soft"
+     x="96"
+     y="286"
+     width="150"
+     height="48"
+     rx="12"
+     id="rect18" />
+  <text
+     class="text"
+     x="136"
+     y="315"
+     id="text18">ESM-C</text>
+  <line
+     class="blue-line"
+     x1="246"
+     y1="310"
+     x2="312"
+     y2="310"
+     id="line18" />
+  <polygon
+     points="322,310 312,306 312,314"
+     fill="#2563eb"
+     id="line18-head" />
+  <text
+     class="math-small"
+     x="326"
+     y="317"
+     id="text19">q<tspan
+   baseline-shift="sub"
+   font-size="14"
+   id="tspan18">TF</tspan></text>
+  <rect
+     class="green-panel"
+     x="70"
+     y="425"
+     width="360"
+     height="225"
+     rx="18"
+     id="rect19" />
+  <text
+     class="label"
+     x="96"
+     y="468"
+     id="text20">Genome regulatory windows</text>
+  <text
+     class="text"
+     x="96"
+     y="497"
+     id="text21">1 kb locus representations</text>
+  <g
+     transform="translate(96,532)"
+     id="g28">
+    <rect
+       x="0"
+       y="0"
+       width="235"
+       height="28"
+       fill="#dbeafe"
+       stroke="#1d4ed8"
+       stroke-width="2"
+       id="rect21" />
+    <rect
+       x="0"
+       y="0"
+       width="18"
+       height="28"
+       fill="#ef4444"
+       id="rect22" />
+    <rect
+       x="28"
+       y="0"
+       width="14"
+       height="28"
+       fill="#f59e0b"
+       id="rect23" />
+    <rect
+       x="51"
+       y="0"
+       width="18"
+       height="28"
+       fill="#22c55e"
+       id="rect24" />
+    <rect
+       x="82"
+       y="0"
+       width="12"
+       height="28"
+       fill="#a78bfa"
+       id="rect25" />
+    <rect
+       x="113"
+       y="0"
+       width="22"
+       height="28"
+       fill="#f59e0b"
+       id="rect26" />
+    <rect
+       x="151"
+       y="0"
+       width="17"
+       height="28"
+       fill="#ef4444"
+       id="rect27" />
+    <rect
+       x="192"
+       y="0"
+       width="18"
+       height="28"
+       fill="#22c55e"
+       id="rect28" />
+    <line
+       x1="0"
+       y1="38"
+       x2="235"
+       y2="38"
+       stroke="#4b5563"
+       stroke-width="3"
+       id="line28" />
+  </g>
+  <rect
+     class="soft"
+     x="96"
+     y="586"
+     width="176"
+     height="44"
+     rx="12"
+     id="rect29" />
+  <text
+     class="text"
+     x="119"
+     y="615"
+     id="text29">AlphaGenome</text>
+  <line
+     class="green-line"
+     x1="272"
+     y1="608"
+     x2="312"
+     y2="608"
+     id="line29" />
+  <polygon
+     points="322,608 312,604 312,612"
+     fill="#15803d"
+     id="line29-head" />
+  <text
+     class="math-small"
+     x="326"
+     y="615"
+     id="text30">K,V</text>
+  <!-- Associative retrieval -->
+  <rect
+     class="panel"
+     x="500"
+     y="135"
+     width="520"
+     height="515"
+     rx="20"
+     id="rect30" />
+  <text
+     class="panel-title"
+     x="530"
+     y="178"
+     id="text31">Associative retrieval</text>
+  <text
+     class="text"
+     x="530"
+     y="207"
+     id="text32">query weights candidate regulatory loci</text>
+  <rect
+     class="blue-panel"
+     x="545"
+     y="265"
+     width="165"
+     height="70"
+     rx="14"
+     id="rect32" />
+  <g
+     transform="translate(554,271) scale(0.72)"
+     id="g34">
+    <path
+       class="protein-shadow"
+       d="M 9 45 C -4 30, 2 11, 21 10 C 39 8, 42 27, 58 22 C 80 15, 91 35, 80 52 C 67 72, 47 53, 33 62 C 16 73, 0 59, 12 45"
+       id="path32" />
+    <path
+       class="protein-ribbon"
+       d="M 9 45 C -4 30, 2 11, 21 10 C 39 8, 42 27, 58 22 C 80 15, 91 35, 80 52 C 67 72, 47 53, 33 62 C 16 73, 0 59, 12 45"
+       id="path33" />
+    <path
+       class="protein-helix"
+       d="M 15 41 C 24 33, 35 36, 29 46 C 25 54, 39 58, 47 50"
+       id="path33b" />
+    <polygon
+       class="protein-sheet"
+       points="21,8 53,15 66,25 53,27 18,17"
+       id="polygon33" />
+    <polygon
+       class="protein-sheet-light"
+       points="12,25 42,31 54,41 41,43 9,34"
+       id="polygon34" />
+    <polygon
+       class="protein-sheet"
+       points="39,38 70,45 81,55 68,57 36,48"
+       id="polygon34b" />
+  </g>
+  <text
+     class="math"
+     x="638"
+     y="305"
+     id="text34">q<tspan
+   baseline-shift="sub"
+   font-size="16"
+   id="tspan34">TF</tspan></text>
+  <text
+     class="small"
+     x="611"
+     y="322"
+     id="text35">protein query</text>
+  <rect
+     class="green-panel"
+     x="545"
+     y="375"
+     width="165"
+     height="70"
+     rx="14"
+     id="rect35" />
+  <g
+     transform="translate(581,410) rotate(-20) scale(0.9)"
+     id="dna-locus-icon">
+    <path
+       class="dna-outline"
+       d="M -12 -30 C 16 -22, 16 -10, -12 -1 C -35 8, -16 20, 12 30"
+       id="dna-locus-blue-outline" />
+    <path
+       class="dna-outline"
+       d="M 12 -30 C -16 -22, -16 -10, 12 -1 C 35 8, 16 20, -12 30"
+       id="dna-locus-red-outline" />
+    <line
+       class="dna-rung"
+       x1="-10"
+       y1="-25"
+       x2="10"
+       y2="-25"
+       id="dna-locus-rung1" />
+    <line
+       class="dna-rung"
+       x1="8"
+       y1="-17"
+       x2="-8"
+       y2="-17"
+       id="dna-locus-rung2" />
+    <line
+       class="dna-rung"
+       x1="14"
+       y1="-9"
+       x2="-14"
+       y2="-9"
+       id="dna-locus-rung3" />
+    <line
+       class="dna-rung"
+       x1="-11"
+       y1="0"
+       x2="11"
+       y2="0"
+       id="dna-locus-rung4" />
+    <line
+       class="dna-rung"
+       x1="-19"
+       y1="10"
+       x2="19"
+       y2="10"
+       id="dna-locus-rung5" />
+    <line
+       class="dna-rung"
+       x1="-9"
+       y1="20"
+       x2="9"
+       y2="20"
+       id="dna-locus-rung6" />
+    <line
+       class="dna-rung"
+       x1="10"
+       y1="27"
+       x2="-10"
+       y2="27"
+       id="dna-locus-rung7" />
+    <path
+       class="dna-backbone"
+       d="M -12 -30 C 16 -22, 16 -10, -12 -1 C -35 8, -16 20, 12 30"
+       stroke="#2563eb"
+       id="dna-locus-blue" />
+    <path
+       class="dna-backbone"
+       d="M 12 -30 C -16 -22, -16 -10, 12 -1 C 35 8, 16 20, -12 30"
+       stroke="#ef4444"
+       id="dna-locus-red" />
+  </g>
+  <text
+     class="math"
+     x="636"
+     y="415"
+     id="text40">K,V</text>
+  <text
+     class="small"
+     x="606"
+     y="432"
+     id="text41">locus memory</text>
+  <rect
+     class="soft"
+     x="760"
+     y="255"
+     width="150"
+     height="215"
+     rx="18"
+     id="rect41" />
+  <text
+     class="small"
+     x="788"
+     y="284"
+     id="text42">retrieval weights</text>
+  <rect
+     x="792"
+     y="315"
+     width="86"
+     height="22"
+     fill="#f3f4f6"
+     id="rect42" />
+  <rect
+     x="792"
+     y="346"
+     width="86"
+     height="22"
+     fill="#fecaca"
+     id="rect43" />
+  <rect
+     x="792"
+     y="377"
+     width="86"
+     height="22"
+     fill="#f3f4f6"
+     id="rect44" />
+  <rect
+     x="792"
+     y="408"
+     width="86"
+     height="22"
+     fill="#f87171"
+     id="rect45" />
+  <rect
+     x="792"
+     y="439"
+     width="86"
+     height="22"
+     fill="#dc2626"
+     id="rect46" />
+  <line
+     class="blue-line"
+     x1="710"
+     y1="300"
+     x2="750"
+     y2="300"
+     id="line46" />
+  <polygon
+     points="760,300 750,296 750,304"
+     fill="#2563eb"
+     id="line46-head" />
+  <line
+     class="green-line"
+     x1="710"
+     y1="410"
+     x2="750"
+     y2="410"
+     id="line47" />
+  <polygon
+     points="760,410 750,406 750,414"
+     fill="#15803d"
+     id="line47-head" />
+  <rect
+     class="soft"
+     x="755"
+     y="510"
+     width="160"
+     height="46"
+     rx="14"
+     id="rect47" />
+  <text
+     class="text"
+     x="771"
+     y="538"
+     id="text47">weighted pooling</text>
+  <line
+     class="gray-line"
+     x1="835"
+     y1="470"
+     x2="835"
+     y2="500"
+     id="line48" />
+  <polygon
+     points="835,510 830.5,500 839.5,500"
+     fill="#4b5563"
+     id="line48-head" />
+  <rect
+     class="purple-panel"
+     x="620"
+     y="580"
+     width="320"
+     height="54"
+     rx="16"
+     id="rect48" />
+  <g
+     transform="translate(660,610) rotate(-20) scale(0.66)"
+     id="protein-dna-icon">
+    <path
+       class="dna-outline"
+       d="M -12 -30 C 16 -22, 16 -10, -12 -1 C -35 8, -16 20, 12 30"
+       id="protein-dna-blue-outline" />
+    <path
+       class="dna-outline"
+       d="M 12 -30 C -16 -22, -16 -10, 12 -1 C 35 8, 16 20, -12 30"
+       id="protein-dna-red-outline" />
+    <line
+       class="dna-rung"
+       x1="-10"
+       y1="-25"
+       x2="10"
+       y2="-25"
+       id="protein-dna-rung1" />
+    <line
+       class="dna-rung"
+       x1="8"
+       y1="-17"
+       x2="-8"
+       y2="-17"
+       id="protein-dna-rung2" />
+    <line
+       class="dna-rung"
+       x1="14"
+       y1="-9"
+       x2="-14"
+       y2="-9"
+       id="protein-dna-rung3" />
+    <line
+       class="dna-rung"
+       x1="-11"
+       y1="0"
+       x2="11"
+       y2="0"
+       id="protein-dna-rung4" />
+    <line
+       class="dna-rung"
+       x1="-18"
+       y1="10"
+       x2="18"
+       y2="10"
+       id="protein-dna-rung5" />
+    <line
+       class="dna-rung"
+       x1="-9"
+       y1="20"
+       x2="9"
+       y2="20"
+       id="protein-dna-rung6" />
+    <line
+       class="dna-rung"
+       x1="10"
+       y1="27"
+       x2="-10"
+       y2="27"
+       id="protein-dna-rung7" />
+    <path
+       class="dna-backbone"
+       d="M -12 -30 C 16 -22, 16 -10, -12 -1 C -35 8, -16 20, 12 30"
+       stroke="#2563eb"
+       id="protein-dna-blue" />
+    <path
+       class="dna-backbone"
+       d="M 12 -30 C -16 -22, -16 -10, 12 -1 C 35 8, 16 20, -12 30"
+       stroke="#ef4444"
+       id="protein-dna-red" />
+    <path
+       class="protein-shadow"
+       d="M -3 -1 C 8 -20, 32 -16, 35 1 C 39 21, 16 18, 20 32 C 10 41, -7 31, 2 18"
+       id="protein-dna-shadow" />
+    <path
+       class="protein-ribbon"
+       d="M -3 -1 C 8 -20, 32 -16, 35 1 C 39 21, 16 18, 20 32 C 10 41, -7 31, 2 18"
+       id="protein-dna-ribbon" />
+    <path
+       class="protein-helix"
+       d="M 4 13 C 12 6, 23 10, 18 18 C 14 25, 26 28, 31 20"
+       id="protein-dna-helix" />
+    <polygon
+       class="protein-sheet"
+       points="12,-18 34,-12 43,-3 31,-4 9,-10"
+       id="protein-dna-sheet" />
+    <polygon
+       class="protein-sheet-light"
+       points="3,1 26,8 35,17 23,17 0,9"
+       id="protein-dna-sheet2" />
+  </g>
+  <text
+     class="math"
+     x="755"
+     y="611"
+     id="text54">μ<tspan
+   baseline-shift="sub"
+   font-size="16"
+   id="tspan54">p</tspan></text>
+  <text
+     class="small"
+     x="690"
+     y="628"
+     id="text55">retrieved regulatory context</text>
+  <line
+     class="purple-line"
+     x1="835"
+     y1="556"
+     x2="835"
+     y2="570"
+     id="line55" />
+  <polygon
+     points="835,580 830,570 840,570"
+     fill="#7c3aed"
+     id="line55-head" />
+  <!-- Input-to-retrieval connectors -->
+  <line
+     class="blue-line"
+     x1="430"
+     y1="310"
+     x2="533.05"
+     y2="301.04"
+     id="line56" />
+  <polygon
+     points="545,300 532.62,296.06 533.48,306.02"
+     fill="#2563eb"
+     id="line56-head" />
+  <path
+     class="green-line"
+     d="M 430 608 L 486 608 L 486 410 L 535 410"
+     id="path56" />
+  <polygon
+     points="545,410 535,406 535,414"
+     fill="#15803d"
+     id="path56-head" />
+  <!-- Response panel -->
+  <rect
+     class="orange-panel"
+     x="1090"
+     y="135"
+     width="450"
+     height="515"
+     rx="20"
+     id="rect56" />
+  <text
+     class="panel-title"
+     x="1120"
+     y="178"
+     id="text56">Perturbation response</text>
+  <text
+     class="text"
+     x="1120"
+     y="207"
+     id="text57">conditional flow matching in cell-state space</text>
+  <rect
+     class="soft"
+     x="1120"
+     y="235"
+     width="390"
+     height="145"
+     rx="16"
+     id="rect57" />
+  <text
+     class="label"
+     x="1144"
+     y="268"
+     id="text58">Training:</text>
+  <text
+     class="text"
+     x="1248"
+     y="268"
+     id="text59">learn the vector field</text>
+  <text
+     class="text"
+     x="1144"
+     y="314"
+     id="text60">SCARF embeds control and perturbed cells</text>
+  <text
+     class="math-small"
+     x="1144"
+     y="354"
+     id="text64">dz<tspan
+   baseline-shift="sub"
+   font-size="13"
+   id="tspan60">t</tspan>/dt = v<tspan
+   baseline-shift="sub"
+   font-size="13"
+   id="tspan61">θ</tspan>(z<tspan
+   baseline-shift="sub"
+   font-size="13"
+   id="tspan62">t</tspan>, t, z<tspan
+   baseline-shift="sub"
+   font-size="13"
+   id="tspan63">c</tspan>, μ<tspan
+   baseline-shift="sub"
+   font-size="13"
+   id="tspan64">p</tspan>)</text>
+  <rect
+     class="soft"
+     x="1120"
+     y="415"
+     width="390"
+     height="190"
+     rx="16"
+     id="rect64" />
+  <text
+     class="label"
+     x="1144"
+     y="448"
+     id="text65">Inference:</text>
+  <text
+     class="text"
+     x="1258"
+     y="448"
+     id="text66">predict the perturbed state</text>
+  <rect
+     x="1160"
+     y="475"
+     width="310"
+     height="96"
+     fill="#ffffff"
+     stroke="#d1d5db"
+     stroke-width="1.8"
+     id="rect66" />
+  <line
+     x1="1212"
+     y1="475"
+     x2="1212"
+     y2="571"
+     stroke="#e5e7eb"
+     stroke-width="1.6"
+     id="line66" />
+  <line
+     x1="1264"
+     y1="475"
+     x2="1264"
+     y2="571"
+     stroke="#e5e7eb"
+     stroke-width="1.6"
+     id="line67" />
+  <line
+     x1="1316"
+     y1="475"
+     x2="1316"
+     y2="571"
+     stroke="#e5e7eb"
+     stroke-width="1.6"
+     id="line68" />
+  <line
+     x1="1368"
+     y1="475"
+     x2="1368"
+     y2="571"
+     stroke="#e5e7eb"
+     stroke-width="1.6"
+     id="line69" />
+  <line
+     x1="1420"
+     y1="475"
+     x2="1420"
+     y2="571"
+     stroke="#e5e7eb"
+     stroke-width="1.6"
+     id="line70" />
+  <line
+     x1="1160"
+     y1="523"
+     x2="1470"
+     y2="523"
+     stroke="#e5e7eb"
+     stroke-width="1.6"
+     id="line71" />
+  <g
+     stroke="#9ca3af"
+     stroke-width="1.2"
+     marker-end="url(#arrowGrayMini)"
+     opacity="0.72"
+     id="g81">
+    <line
+       x1="1189"
+       y1="498"
+       x2="1196"
+       y2="502"
+       id="line72" />
+    <line
+       x1="1242"
+       y1="499"
+       x2="1249"
+       y2="504"
+       id="line73" />
+    <line
+       x1="1295"
+       y1="499"
+       x2="1302"
+       y2="505"
+       id="line74" />
+    <line
+       x1="1349"
+       y1="503"
+       x2="1356"
+       y2="509"
+       id="line75" />
+    <line
+       x1="1402"
+       y1="503"
+       x2="1409"
+       y2="509"
+       id="line76" />
+    <line
+       x1="1191"
+       y1="545"
+       x2="1199"
+       y2="547"
+       id="line77" />
+    <line
+       x1="1244"
+       y1="546"
+       x2="1252"
+       y2="546"
+       id="line78" />
+    <line
+       x1="1296"
+       y1="547"
+       x2="1304"
+       y2="545"
+       id="line79" />
+    <line
+       x1="1351"
+       y1="547"
+       x2="1358"
+       y2="543"
+       id="line80" />
+    <line
+       x1="1404"
+       y1="547"
+       x2="1410"
+       y2="542"
+       id="line81" />
+  </g>
+  <circle
+     cx="1225"
+     cy="505"
+     r="21"
+     fill="#60a5fa"
+     stroke="#1d4ed8"
+     stroke-width="3"
+     id="circle81" />
+  <circle
+     cx="1388"
+     cy="545"
+     r="21"
+     fill="#f87171"
+     stroke="#b91c1c"
+     stroke-width="3"
+     id="circle82" />
+  <path
+     class="blue-line"
+     d="M 1242 517 C 1285 546, 1326 555, 1356 545"
+     id="path82" />
+  <polygon
+     points="1367,545 1356,539.5 1356,550.5"
+     fill="#2563eb"
+     id="path82-head" />
+  <text
+     class="small"
+     x="1191"
+     y="594"
+     id="text82">control state</text>
+  <text
+     class="small"
+     x="1342"
+     y="594"
+     id="text83">predicted state</text>
+  <!-- Retrieval-to-response connector -->
+  <line
+     class="purple-line"
+     x1="940"
+     y1="607"
+     x2="1080"
+     y2="607"
+     id="line83" />
+  <polygon
+     points="1090,607 1080,603 1080,611"
+     fill="#7c3aed"
+     id="line83-head" />
+  <!-- Footer -->
+  <rect
+     class="soft"
+     x="70"
+     y="725"
+     width="1470"
+     height="50"
+     rx="14"
+     id="rect83" />
+  <text
+     class="text"
+     x="94"
+     y="756"
+     id="text84">Interpretation: retrieval weights prioritize candidate regulatory contexts for hypothesis generation; they are not validated TF binding sites without external evidence.</text>
+</svg>

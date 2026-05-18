@@ -1,21 +1,19 @@
 # Fdb version 4
-["bibtex HopTF_full_draft"] 1779138789.72457 "HopTF_full_draft.aux" "HopTF_full_draft.bbl" "HopTF_full_draft" 1779138789.79331 0
+["bibtex HopTF_full_draft"] 1779144112.87569 "HopTF_full_draft.aux" "HopTF_full_draft.bbl" "HopTF_full_draft" 1779144909.94419 0
   "./references.bib" 1779138688.01555 12996 9d96f06b266aa08534c0b150ef5965ed ""
   "/usr/share/texlive/texmf-dist/bibtex/bst/natbib/plainnat.bst" 1233624470 26816 ffe5423d2019860bad9f54bc402fac15 ""
-  "HopTF_full_draft.aux" 1779138701.25537 30628 f923fd81f67cad7e125b9187c4796d31 "pdflatex"
+  "HopTF_full_draft.aux" 1779144909.78086 29573 23305884dc53082113c861ac430ddddf "pdflatex"
   (generated)
   "HopTF_full_draft.bbl"
   "HopTF_full_draft.blg"
   (rewritten before read)
-["pdflatex"] 1779138697.25646 "HopTF_full_draft.tex" "HopTF_full_draft.pdf" "HopTF_full_draft" 1779138789.79338 0
+["pdflatex"] 1779144905.76104 "HopTF_full_draft.tex" "HopTF_full_draft.pdf" "HopTF_full_draft" 1779144909.94438 0
   "/usr/share/texlive/texmf-dist/fonts/map/fontname/texfonts.map" 1577235249 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmex7.tfm" 1246382020 1004 54797486969f23fa377b128694d548df ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmex8.tfm" 1246382020 988 bdf658c3bfc2d96d3c8b02cfc1c94c20 ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/public/amsfonts/symbols/msam10.tfm" 1246382020 916 f87d7c45f9c908e672703b83b72241a3 ""
-  "/usr/share/texlive/texmf-dist/fonts/tfm/public/amsfonts/symbols/msam5.tfm" 1246382020 924 9904cf1d39e9767e7a3622f2a125a565 ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/public/amsfonts/symbols/msam7.tfm" 1246382020 928 2dc8d444221b7a635bb58038579b861a ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/public/amsfonts/symbols/msbm10.tfm" 1246382020 908 2921f8a10601f252058503cc6570e581 ""
-  "/usr/share/texlive/texmf-dist/fonts/tfm/public/amsfonts/symbols/msbm5.tfm" 1246382020 940 75ac932a52f80982a9f8ea75d03a34cf ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/public/amsfonts/symbols/msbm7.tfm" 1246382020 940 228d6584342e91276bf566bcf9716b83 ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/public/cm/cmbx10.tfm" 1136768653 1328 c834bbb027764024c09d3d2bf908b5f0 ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/public/cm/cmbx12.tfm" 1136768653 1324 c910af8c371558dc20f2d7822f66fe64 ""
@@ -43,7 +41,6 @@
   "/usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb" 1248133631 36299 5f9df58c2139e7edcf37c8fca4bd384d ""
   "/usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi12.pfb" 1248133631 36741 fa121aac0049305630cf160b86157ee4 ""
   "/usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi6.pfb" 1248133631 37166 8ab3487cbe3ab49ebce74c29ea2418db ""
-  "/usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb" 1248133631 36281 c355509802a035cadc5f15869451dcee ""
   "/usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb" 1248133631 35469 70d41d2b9ea31d5d813066df7c99281c ""
   "/usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb" 1248133631 35752 024fb6c41858982481f6968b5fc26508 ""
   "/usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb" 1248133631 32722 d7379af29a190c3f453aba36302ff5a9 ""
@@ -124,15 +121,16 @@
   "/usr/share/texlive/texmf-dist/web2c/texmf.cnf" 1764115200 40900 887e0dc8cac988a9e9c574af364cf837 ""
   "/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map" 1768928351.03535 4602615 ac1019cb4c4ba39710c2cf7f752b378d ""
   "/var/lib/texmf/web2c/pdftex/pdflatex.fmt" 1768928130 7753940 0bc6e702038bca57d14e8ea3c0000048 ""
-  "HopTF_full_draft.aux" 1779138701.25537 30628 f923fd81f67cad7e125b9187c4796d31 "pdflatex"
-  "HopTF_full_draft.bbl" 1779138789.77657 14529 11c5a491fd37aa41f1ccefc39e3ea8d1 "bibtex HopTF_full_draft"
-  "HopTF_full_draft.out" 1779138701.25737 10109 2c482f00329f0652d181f75f16a380ca "pdflatex"
-  "HopTF_full_draft.tex" 1779138581.54109 90134 f90f1460ddfaa769e19b8b5dc401a183 ""
+  "HopTF_full_draft.aux" 1779144909.78086 29573 23305884dc53082113c861ac430ddddf "pdflatex"
+  "HopTF_full_draft.bbl" 1779144112.92807 14529 11c5a491fd37aa41f1ccefc39e3ea8d1 "bibtex HopTF_full_draft"
+  "HopTF_full_draft.out" 1779144909.78186 9687 ca134cedb2263dc0b9021a874925e46f "pdflatex"
+  "HopTF_full_draft.tex" 1779144098.99488 95136 c87c13255ef447055a78bf62c462fa75 ""
   "figures/absolute_variant_effect_violin.png" 1779122598.72328 234449 b1504e72f225f64c5281e0905c52cafc ""
   "figures/benign_control_tier_counts.png" 1779122598.72428 183415 d820b2327308cf4b47ee9752dea1f867 ""
   "figures/beta_sweep_figure.png" 1779122598.72428 346785 9f0d039d5ca824ba53506184811def50 ""
   "figures/experiment1_controlled_overall_mse.png" 1779122598.72528 228095 5f6f2fb7181710b8eb1e04dd1f04fdd2 ""
   "figures/experiment1_sequence_after_length_cell_count.png" 1779122598.72628 462707 84790d5dc6fb21e9ef3e310afc5af9e4 ""
+  "figures/hoptf_model_overview.pdf" 1779144846.476 39363 f505ca3e94bd455ddac65583f97d9583 ""
   "figures/motif_binding_precision_by_topk.png" 1779122598.72728 138249 55255799ba37f46318b5441f03021ba6 ""
   "figures/motif_binding_recall_by_topk.png" 1779122598.72728 268969 b48d244c21329c7d312d4088415b7d1a ""
   "figures/scarf_sequence_feature_benchmark.png" 1779122598.72828 196302 a4d37ed1ea0f57c856689c4f0ef47bf4 ""
