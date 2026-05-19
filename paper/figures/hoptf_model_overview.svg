@@ -22,19 +22,19 @@
      inkscape:pageopacity="0.0"
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
-     inkscape:zoom="8.5447723"
-     inkscape:cx="607.03782"
-     inkscape:cy="356.53378"
+     inkscape:zoom="11.835835"
+     inkscape:cx="542.42053"
+     inkscape:cy="379.8211"
      inkscape:window-width="3840"
      inkscape:window-height="2100"
      inkscape:window-x="0"
      inkscape:window-y="0"
      inkscape:window-maximized="1"
-     inkscape:current-layer="svg84" />
+     inkscape:current-layer="dna-locus-icon" />
   <title
      id="title">HopTF model overview</title>
   <desc
-     id="desc">Conceptual overview of HopTF showing protein sequence and genome windows feeding associative retrieval, which produces a regulatory-context vector that conditions training and inference of a cell-state transport model.</desc>
+     id="desc">Conceptual overview of HopTF showing protein sequence and gene-associated AlphaGenome memory feeding associative retrieval, which produces a regulatory context vector that conditions training and inference of a cell state transport model.</desc>
   <defs
      id="defs8">
     <marker
@@ -130,6 +130,26 @@
          stop-color="#dc2626"
          id="stop8" />
     </linearGradient>
+    <clipPath
+       id="chromTopClip">
+      <rect
+         x="868"
+         y="300"
+         width="26"
+         height="72"
+         rx="10"
+         id="rect1" />
+    </clipPath>
+    <clipPath
+       id="chromBottomClip">
+      <rect
+         x="868"
+         y="382"
+         width="26"
+         height="84"
+         rx="10"
+         id="rect2" />
+    </clipPath>
     <style
        id="style8">
       .bg { fill: #ffffff; }
@@ -158,9 +178,11 @@
       .protein-sheet { fill: #60a5fa; stroke: #1e40af; stroke-width: 1.8; stroke-linejoin: round; }
       .protein-sheet-light { fill: #93c5fd; stroke: #2563eb; stroke-width: 1.8; stroke-linejoin: round; }
       .protein-helix { fill: none; stroke: #1d4ed8; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
-      .dna-outline { fill: none; stroke: #111827; stroke-width: 4.6; stroke-linecap: round; stroke-linejoin: round; }
-      .dna-backbone { fill: none; stroke-width: 2.9; stroke-linecap: round; stroke-linejoin: round; }
-      .dna-rung { stroke: #111827; stroke-width: 1.9; stroke-linecap: round; }
+      .dna-outline { fill: none; stroke: #334155; stroke-width: 7.2; stroke-linecap: round; stroke-linejoin: round; }
+      .dna-backbone { fill: none; stroke-width: 4.7; stroke-linecap: round; stroke-linejoin: round; }
+      .dna-rung { stroke: #334155; stroke-width: 2.1; stroke-linecap: round; }
+      .chrom-body { fill: #f3f4f6; stroke: #cbd5e1; stroke-width: 2; }
+      .chrom-centromere { fill: #e5e7eb; stroke: #cbd5e1; stroke-width: 1.8; }
     </style>
   </defs>
   <rect
@@ -179,7 +201,7 @@
      class="subtitle"
      x="64"
      y="90"
-     id="text9">A TF isoform sequence retrieves a regulatory context from genome-wide locus representations; the retrieved context conditions perturbation-response transport.</text>
+     id="text9">A TF isoform sequence retrieves regulatory context from gene-associated AlphaGenome memory; the retrieved context conditions perturbation response transport.</text>
   <!-- Inputs -->
   <rect
      class="blue-panel"
@@ -316,12 +338,12 @@
      class="label"
      x="96"
      y="468"
-     id="text20">Genome regulatory windows</text>
+     id="text20">Gene-associated loci</text>
   <text
      class="text"
      x="96"
      y="497"
-     id="text21">1 kb locus representations</text>
+     id="text21">pooled AlphaGenome embeddings</text>
   <g
      transform="translate(96,532)"
      id="g28">
@@ -498,73 +520,66 @@
      rx="14"
      id="rect35" />
   <g
-     transform="translate(581,410) rotate(-20) scale(0.9)"
+     transform="translate(580,410) rotate(-22) scale(0.62)"
      id="dna-locus-icon">
-    <path
-       class="dna-outline"
-       d="M -12 -30 C 16 -22, 16 -10, -12 -1 C -35 8, -16 20, 12 30"
-       id="dna-locus-blue-outline" />
-    <path
-       class="dna-outline"
-       d="M 12 -30 C -16 -22, -16 -10, 12 -1 C 35 8, 16 20, -12 30"
-       id="dna-locus-red-outline" />
     <line
        class="dna-rung"
-       x1="-10"
-       y1="-25"
-       x2="10"
-       y2="-25"
+       x1="-30"
+       y1="-18"
+       x2="-30"
+       y2="18"
        id="dna-locus-rung1" />
     <line
        class="dna-rung"
-       x1="8"
-       y1="-17"
-       x2="-8"
-       y2="-17"
+       x1="-20"
+       y1="-24"
+       x2="-20"
+       y2="24"
        id="dna-locus-rung2" />
     <line
        class="dna-rung"
-       x1="14"
-       y1="-9"
+       x1="-14"
+       y1="-20"
        x2="-14"
-       y2="-9"
+       y2="20"
        id="dna-locus-rung3" />
     <line
        class="dna-rung"
-       x1="-11"
-       y1="0"
-       x2="11"
-       y2="0"
+       x1="14"
+       y1="20"
+       x2="14"
+       y2="-20"
        id="dna-locus-rung4" />
     <line
        class="dna-rung"
-       x1="-19"
-       y1="10"
-       x2="19"
-       y2="10"
+       x1="20"
+       y1="24"
+       x2="20"
+       y2="-24"
        id="dna-locus-rung5" />
     <line
        class="dna-rung"
-       x1="-9"
-       y1="20"
-       x2="9"
-       y2="20"
+       x1="30"
+       y1="18"
+       x2="30"
+       y2="-18"
        id="dna-locus-rung6" />
-    <line
-       class="dna-rung"
-       x1="10"
-       y1="27"
-       x2="-10"
-       y2="27"
-       id="dna-locus-rung7" />
+    <path
+       class="dna-outline"
+       d="M -38 -12 C -26 -26, -10 -28, 0 0 C 10 28, 26 26, 38 12"
+       id="dna-locus-blue-outline" />
+    <path
+       class="dna-outline"
+       d="M -38 12 C -26 26, -10 28, 0 0 C 10 -28, 26 -26, 38 -12"
+       id="dna-locus-red-outline" />
     <path
        class="dna-backbone"
-       d="M -12 -30 C 16 -22, 16 -10, -12 -1 C -35 8, -16 20, 12 30"
-       stroke="#2563eb"
+       d="M -38 -12 C -26 -26, -10 -28, 0 0 C 10 28, 26 26, 38 12"
+       stroke="#22c7e8"
        id="dna-locus-blue" />
     <path
        class="dna-backbone"
-       d="M 12 -30 C -16 -22, -16 -10, 12 -1 C 35 8, 16 20, -12 30"
+       d="M -38 12 C -26 26, -10 28, 0 0 C 10 -28, 26 -26, 38 -12"
        stroke="#ef4444"
        id="dna-locus-red" />
   </g>
@@ -591,41 +606,177 @@
      x="788"
      y="284"
      id="text42">retrieval weights</text>
-  <rect
-     x="792"
-     y="315"
-     width="86"
-     height="22"
-     fill="#f3f4f6"
-     id="rect42" />
-  <rect
-     x="792"
-     y="346"
-     width="86"
-     height="22"
-     fill="#fecaca"
-     id="rect43" />
-  <rect
-     x="792"
-     y="377"
-     width="86"
-     height="22"
-     fill="#f3f4f6"
-     id="rect44" />
-  <rect
-     x="792"
-     y="408"
-     width="86"
-     height="22"
-     fill="#f87171"
-     id="rect45" />
-  <rect
-     x="792"
-     y="439"
-     width="86"
-     height="22"
-     fill="#dc2626"
-     id="rect46" />
+  <g
+     id="retrieval-chromosome">
+    <g
+       id="retrieval-fan"
+       stroke-linecap="round">
+      <line
+         x1="782"
+         y1="382"
+         x2="867"
+         y2="312"
+         stroke="#fecaca"
+         stroke-width="1.4"
+         opacity="0.65"
+         id="retrieval-fan-1" />
+      <line
+         x1="782"
+         y1="382"
+         x2="867"
+         y2="336"
+         stroke="#fca5a5"
+         stroke-width="1.8"
+         opacity="0.75"
+         id="retrieval-fan-2" />
+      <line
+         x1="782"
+         y1="382"
+         x2="867"
+         y2="359"
+         stroke="#ef4444"
+         stroke-width="2.4"
+         opacity="0.85"
+         id="retrieval-fan-3" />
+      <line
+         x1="782"
+         y1="382"
+         x2="867"
+         y2="390"
+         stroke="#fee2e2"
+         stroke-width="1.2"
+         opacity="0.7"
+         id="retrieval-fan-4" />
+      <line
+         x1="782"
+         y1="382"
+         x2="867"
+         y2="417"
+         stroke="#f87171"
+         stroke-width="2.1"
+         opacity="0.85"
+         id="retrieval-fan-5" />
+      <line
+         x1="782"
+         y1="382"
+         x2="867"
+         y2="452"
+         stroke="#dc2626"
+         stroke-width="2.7"
+         opacity="0.9"
+         id="retrieval-fan-6" />
+    </g>
+    <circle
+       cx="782"
+       cy="382"
+       r="3.5"
+       fill="#ef4444"
+       opacity="0.65"
+       id="retrieval-fan-origin" />
+    <rect
+       class="chrom-body"
+       x="868"
+       y="300"
+       width="26"
+       height="72"
+       rx="10"
+       id="chrom-top-base" />
+    <g
+       clip-path="url(#chromTopClip)"
+       id="chrom-top-bands">
+      <rect
+         x="868"
+         y="305"
+         width="26"
+         height="13"
+         fill="#f8fafc"
+         id="chrom-band-top-1" />
+      <rect
+         x="868"
+         y="329"
+         width="26"
+         height="12"
+         fill="#fecaca"
+         id="chrom-band-top-2" />
+      <rect
+         x="868"
+         y="353"
+         width="26"
+         height="12"
+         fill="#f87171"
+         id="chrom-band-top-3" />
+    </g>
+    <rect
+       class="chrom-body"
+       x="868"
+       y="382"
+       width="26"
+       height="84"
+       rx="10"
+       id="chrom-bottom-base" />
+    <g
+       clip-path="url(#chromBottomClip)"
+       id="chrom-bottom-bands">
+      <rect
+         x="868"
+         y="388"
+         width="26"
+         height="13"
+         fill="#fee2e2"
+         id="chrom-band-bottom-1" />
+      <rect
+         x="868"
+         y="413"
+         width="26"
+         height="16"
+         fill="#f87171"
+         id="chrom-band-bottom-2" />
+      <rect
+         x="868"
+         y="445"
+         width="26"
+         height="16"
+         fill="#dc2626"
+         id="chrom-band-bottom-3" />
+    </g>
+    <rect
+       class="chrom-centromere"
+       x="873"
+       y="366"
+       width="16"
+       height="22"
+       rx="8"
+       id="chrom-centromere" />
+    <rect
+       x="875"
+       y="371"
+       width="12"
+       height="12"
+       rx="5"
+       fill="#fca5a5"
+       opacity="0.75"
+       id="chrom-centromere-weight" />
+    <rect
+       x="868"
+       y="300"
+       width="26"
+       height="72"
+       rx="10"
+       fill="none"
+       stroke="#cbd5e1"
+       stroke-width="2"
+       id="chrom-top-outline" />
+    <rect
+       x="868"
+       y="382"
+       width="26"
+       height="84"
+       rx="10"
+       fill="none"
+       stroke="#cbd5e1"
+       stroke-width="2"
+       id="chrom-bottom-outline" />
+  </g>
   <line
      class="blue-line"
      x1="710"
@@ -681,73 +832,66 @@
      rx="16"
      id="rect48" />
   <g
-     transform="translate(660,610) rotate(-20) scale(0.66)"
+     transform="translate(660,610) rotate(-22) scale(0.48)"
      id="protein-dna-icon">
-    <path
-       class="dna-outline"
-       d="M -12 -30 C 16 -22, 16 -10, -12 -1 C -35 8, -16 20, 12 30"
-       id="protein-dna-blue-outline" />
-    <path
-       class="dna-outline"
-       d="M 12 -30 C -16 -22, -16 -10, 12 -1 C 35 8, 16 20, -12 30"
-       id="protein-dna-red-outline" />
     <line
        class="dna-rung"
-       x1="-10"
-       y1="-25"
-       x2="10"
-       y2="-25"
+       x1="-30"
+       y1="-18"
+       x2="-30"
+       y2="18"
        id="protein-dna-rung1" />
     <line
        class="dna-rung"
-       x1="8"
-       y1="-17"
-       x2="-8"
-       y2="-17"
+       x1="-20"
+       y1="-24"
+       x2="-20"
+       y2="24"
        id="protein-dna-rung2" />
     <line
        class="dna-rung"
-       x1="14"
-       y1="-9"
+       x1="-14"
+       y1="-20"
        x2="-14"
-       y2="-9"
+       y2="20"
        id="protein-dna-rung3" />
     <line
        class="dna-rung"
-       x1="-11"
-       y1="0"
-       x2="11"
-       y2="0"
+       x1="14"
+       y1="20"
+       x2="14"
+       y2="-20"
        id="protein-dna-rung4" />
     <line
        class="dna-rung"
-       x1="-18"
-       y1="10"
-       x2="18"
-       y2="10"
+       x1="20"
+       y1="24"
+       x2="20"
+       y2="-24"
        id="protein-dna-rung5" />
     <line
        class="dna-rung"
-       x1="-9"
-       y1="20"
-       x2="9"
-       y2="20"
+       x1="30"
+       y1="18"
+       x2="30"
+       y2="-18"
        id="protein-dna-rung6" />
-    <line
-       class="dna-rung"
-       x1="10"
-       y1="27"
-       x2="-10"
-       y2="27"
-       id="protein-dna-rung7" />
+    <path
+       class="dna-outline"
+       d="M -38 -12 C -26 -26, -10 -28, 0 0 C 10 28, 26 26, 38 12"
+       id="protein-dna-blue-outline" />
+    <path
+       class="dna-outline"
+       d="M -38 12 C -26 26, -10 28, 0 0 C 10 -28, 26 -26, 38 -12"
+       id="protein-dna-red-outline" />
     <path
        class="dna-backbone"
-       d="M -12 -30 C 16 -22, 16 -10, -12 -1 C -35 8, -16 20, 12 30"
-       stroke="#2563eb"
+       d="M -38 -12 C -26 -26, -10 -28, 0 0 C 10 28, 26 26, 38 12"
+       stroke="#22c7e8"
        id="protein-dna-blue" />
     <path
        class="dna-backbone"
-       d="M 12 -30 C -16 -22, -16 -10, 12 -1 C 35 8, 16 20, -12 30"
+       d="M -38 12 C -26 26, -10 28, 0 0 C 10 -28, 26 -26, 38 -12"
        stroke="#ef4444"
        id="protein-dna-red" />
     <path
@@ -833,7 +977,7 @@
      class="text"
      x="1120"
      y="207"
-     id="text57">conditional flow matching in cell-state space</text>
+     id="text57">conditional flow matching in cell state space</text>
   <rect
      class="soft"
      x="1120"

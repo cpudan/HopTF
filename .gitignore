@@ -16,3 +16,13 @@ data/reference/scarf/model_files.zip
 data/reference/scarf/model_files/
 data/reference/scarf/weights/
 data/reference/scarf/prior_data/
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+*.synctex.gz
+*.swp
+missfont.log

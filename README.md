@@ -1,5 +1,9 @@
 # HopTF
 
+Public code repository:
+
+- <https://github.com/cpudan/HopTF>
+
 This repository now uses three separate `uv` environments:
 
 - The root project is the main environment for dataset conversion, local utilities, and lightweight tests.
@@ -13,6 +17,8 @@ Separating them avoids dependency conflicts between the SCARF foundation model, 
 Project data is hosted on Hugging Face at:
 
 - <https://huggingface.co/datasets/pvd232/HopTF>
+
+The Hugging Face repository is organized as an artifact store with manifests, raw sources, processed embeddings, model snapshots, experiment diagnostics, and promoted outputs. It is not intended to load as one homogeneous Hugging Face table.
 
 ## SCP3357 Conversion
 
